@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:glam0/blocks/auth_block.dart';
 import 'package:glam0/models/user.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +14,6 @@ class SignIn extends StatefulWidget {
 class _SignInState extends State<SignIn> {
   final _formKey = GlobalKey<FormState>();
   final UserCredential userCredential = UserCredential(email: '', password: '');
-
 
 
   @override
@@ -69,13 +69,13 @@ class _SignInState extends State<SignIn> {
                   Padding(
                     padding: const EdgeInsets.only(top: 25.0),
                     child: SizedBox(
-                      width: double.infinity,
+                      width: 150,
                       height: 50,
                       child: Consumer<AuthBlock>(
                         builder:
                             (BuildContext context, AuthBlock auth, Widget? child) {
                           return RaisedButton(
-                            color: Theme.of(context).primaryColor,
+                            color: Color(0xffDB3022),
                             textColor: Colors.white,
                             child: auth.loading && auth.loadingType == 'login' ? CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -87,7 +87,13 @@ class _SignInState extends State<SignIn> {
                                 _formKey.currentState!.save();
                                 // Hit Api
                                 auth.login(userCredential);
-                                 Navigator.pushNamed(context, '/settings');
+                                if(auth.a=="failed" || auth.a=="not exist") {
+                                  Navigator.pushNamed(context, '/auth');
+                                }
+                                else {
+                                  Navigator.pushNamed(context, '/settings');
+                                }
+
                               }
                             },
                           );

@@ -1,7 +1,14 @@
+import 'dart:convert';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_stars/flutter_rating_stars.dart';
 
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
+import '../models/item.dart';
 import 'search.dart';
 
 class Shop extends StatefulWidget {
@@ -9,19 +16,56 @@ class Shop extends StatefulWidget {
   _ShopState createState() => _ShopState();
 }
 
+
 class _ShopState extends State<Shop> {
-  final List<Map<dynamic, dynamic>> products = [
-    {'name': 'IPhone', 'rating': 3.0, 'image': 'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80'},
-    {'name': 'IPhone X 2', 'rating': 3.0, 'image': 'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 12', 'rating': 5.0, 'image': 'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80'},
-  ];
+  // var cat_id;
+  // getCat() async {
+  //   SharedPreferences preferences = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     cat_id = preferences.getString("catid")!;
+  //   });
+  // }
+  saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
+      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("pid",prd_id);
+    preferences.setString("pname",prd_name);
+    preferences.setString("pprice",prd_price);
+    preferences.setString("pimage",prd_image);
+    preferences.setString("pdescription",prd_description);
+    preferences.setString("pquantity",prd_quantity);
+    preferences.setString("pcolor",prd_color);
+    preferences.setString("psize",prd_size);
+    preferences.setString("pdate",prd_date);
+    preferences.setString("catid",catid);
+  }
+
+  List<item> _item = List<item>.empty(growable: true);
+
+  Future<List<item>> fetchItems() async {
+    var response = await http.get(Uri.parse(CONFIG.ITEM));
+    var items = List<item>.empty(growable: true);
+
+    if(response.statusCode == 200) {
+      var itemsJson = json.decode(response.body);
+      for(var dataJson in itemsJson){
+        items.add(item.fromJson(dataJson));
+      }
+
+    }
+
+    return items;
+  }
+  @override
+  initState(){
+    // getCat();
+    fetchItems().then((value){
+      setState(() {
+        _item = _item.toList();
+        _item.addAll(value);
+      });
+    });
+  }
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
@@ -40,429 +84,147 @@ class _ShopState extends State<Shop> {
             )
           ],
           title: Text('Shop'),
+          backgroundColor: Color(0xffDB3022),
         ),
         body: Builder(
-          builder: (BuildContext context) {
-            return DefaultTabController(
-                length: 2,
-                child: Column(
+          builder: (BuildContext contex) {
+            return Column(
                   children: <Widget>[
-                    Container(
-                      constraints: BoxConstraints(maxHeight: 150.0),
-                      child: Material(
-                        color: Theme.of(context).accentColor,
-                        child: TabBar(
-                          indicatorColor: Colors.blue,
-                          tabs: [
-                            Tab(icon: Icon(Icons.view_list)),
-                            Tab(icon: Icon(Icons.grid_on)),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: TabBarView(
-                        children: [
                           Container(
-                            child: ListView(
-                              children: products.map((product) {
-                                return Builder(
-                                  builder: (BuildContext context) {
-                                    return  InkWell(
-                                      onTap: () {
-                                        print('Card tapped.');
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          Divider(
-                                            height: 0,
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                                            child: ListTile(
-                                              trailing: Icon(Icons.navigate_next),
-                                              leading: ClipRRect(
-                                                borderRadius: BorderRadius.circular(5.0),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                      color: Colors.blue
-                                                  ),
-                                                  child: CachedNetworkImage(
-                                                    fit: BoxFit.cover,
-                                                    imageUrl: product['image'],
-                                                    placeholder: (context, url) => Center(
-                                                        child: CircularProgressIndicator()
-                                                    ),
-                                                    errorWidget: (context, url, error) => new Icon(Icons.error),
-                                                  ),
-                                                ),
-                                              ),
-                                              title: Text(
-                                                product['name'],
-                                                style: TextStyle(
-                                                    fontSize: 14
-                                                ),
-                                              ),
-                                              subtitle: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  Row(
-                                                    children: <Widget>[
-                                                      Padding(
-                                                        padding: const EdgeInsets.only(top: 2.0, bottom: 1),
-                                                        child: Text('\$200', style: TextStyle(
-                                                          color: Theme.of(context).accentColor,
-                                                          fontWeight: FontWeight.w700,
-                                                        )),
-                                                      ),
-                                                      Padding(
-                                                        padding: const EdgeInsets.only(left: 6.0),
-                                                        child: Text('(\$400)', style: TextStyle(
-                                                            fontWeight: FontWeight.w700,
-                                                            fontStyle: FontStyle.italic,
-                                                            color: Colors.grey,
-                                                            decoration: TextDecoration.lineThrough
-                                                        )),
-                                                      )
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    children: <Widget>[
-                                                      RatingStars(
-                                                        value: product['rating'],
-                                                        starSize: 16,
-                                                        valueLabelColor: Colors.amber,
-                                                        starColor: Colors.amber,
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                          Container(
+
                             child: GridView.count(
                               shrinkWrap: true,
                               crossAxisCount: 2,
                               childAspectRatio: 0.7,
                               padding: EdgeInsets.only(top: 8, left: 6, right: 6, bottom: 12),
-                              children: List.generate(products.length, (index) {
-                                return Container(
-                                  child: Card(
-                                    clipBehavior: Clip.antiAlias,
-                                    child: InkWell(
-                                      onTap: () {
-                                        print('Card tapped.');
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          SizedBox(
-                                            height: (MediaQuery.of(context).size.width / 2 - 5),
-                                            width: double.infinity,
-                                            child: CachedNetworkImage(
-                                              fit: BoxFit.cover,
-                                              imageUrl: products[index]['image'],
-                                              placeholder: (context, url) => Center(
-                                                  child: CircularProgressIndicator()
-                                              ),
-                                              errorWidget: (context, url, error) => new Icon(Icons.error),
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 5.0),
-                                            child: ListTile(
-                                              title: Text(
-                                                'Two Gold Rings',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16
+                              children: List.generate(_item.length, (index) {
+                                // if(_item[index].cat_id == cat_id) {
+                                  return Container(
+                                    child: Card(
+                                      clipBehavior: Clip.antiAlias,
+                                      child: InkWell(
+                                        onTap: () {
+                                          saveItem(
+                                              _item[index].prd_id,
+                                              _item[index].prd_name,
+                                              _item[index].prd_price,
+                                              _item[index].prd_image,
+                                              _item[index].prd_description,
+                                              _item[index].prd_quantity,
+                                              _item[index].prd_color,
+                                              _item[index].prd_size,
+                                              _item[index].prd_date,
+                                              _item[index].cat_id
+                                          );
+                                          Navigator.pushNamed(
+                                              context, '/products');
+                                          print('Card tapped.');
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
+                                          children: <Widget>[
+                                            SizedBox(
+                                              height: (MediaQuery
+                                                  .of(context)
+                                                  .size
+                                                  .width / 2 - 5),
+                                              width: double.infinity,
+                                              child:
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  image: DecorationImage(
+                                                    image: AssetImage(
+                                                        'assets/images/' +
+                                                            _item[index]
+                                                                .prd_image),
+                                                    fit: BoxFit.cover,
+                                                  ),
                                                 ),
                                               ),
-                                              subtitle: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: <Widget>[
-                                                  Row(
-                                                    children: <Widget>[
-                                                      Padding(
-                                                        padding: const EdgeInsets.only(top: 2.0, bottom: 1),
-                                                        child: Text('\$200', style: TextStyle(
-                                                          color: Theme.of(context).accentColor,
-                                                          fontWeight: FontWeight.w700,
-                                                        )),
-                                                      ),
-                                                      Padding(
-                                                        padding: const EdgeInsets.only(left: 6.0),
-                                                        child: Text('(\$400)', style: TextStyle(
-                                                            fontWeight: FontWeight.w700,
-                                                            fontStyle: FontStyle.italic,
-                                                            color: Colors.grey,
-                                                            decoration: TextDecoration.lineThrough
-                                                        )),
-                                                      )
-                                                    ],
-                                                  ),
-                                                  Row(
-                                                    children: <Widget>[
-                                                      RatingStars(
-                                                        value: products[index]['rating'],
-                                                        starSize: 16,
-                                                        valueLabelColor: Colors.amber,
-                                                        starColor: Colors.amber,
-                                                      )
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
+
                                             ),
-                                          )
-                                        ],
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 5.0),
+                                              child: ListTile(
+                                                title: Text(
+                                                  _item[index].prd_name,
+                                                  style: TextStyle(
+                                                      fontWeight: FontWeight
+                                                          .bold,
+                                                      fontSize: 16
+                                                  ),
+                                                ),
+                                                subtitle: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .start,
+                                                  children: <Widget>[
+                                                    Row(
+                                                      children: <Widget>[
+                                                        Padding(
+                                                          padding: const EdgeInsets
+                                                              .only(top: 2.0,
+                                                              bottom: 1),
+                                                          child: Text('\$' +
+                                                              _item[index]
+                                                                  .prd_price,
+                                                              style: TextStyle(
+                                                                color: Color(0xffDB3022),
+                                                                fontWeight: FontWeight
+                                                                    .w700,
+                                                              )),
+                                                        ),
+                                                        Padding(
+                                                          padding: const EdgeInsets
+                                                              .only(left: 6.0),
+                                                          child: Text('(\$400)',
+                                                              style: TextStyle(
+                                                                  fontWeight: FontWeight
+                                                                      .w700,
+                                                                  fontStyle: FontStyle
+                                                                      .italic,
+                                                                  color: Colors
+                                                                      .grey,
+                                                                  decoration: TextDecoration
+                                                                      .lineThrough
+                                                              )),
+                                                        )
+                                                      ],
+                                                    ),
+                                                    Row(
+                                                      children: <Widget>[
+                                                        RatingStars(
+                                                          value: 3.0,
+                                                          starSize: 16,
+                                                          valueLabelColor: Colors
+                                                              .amber,
+                                                          starColor: Colors
+                                                              .amber,
+                                                        )
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                // }else {return const SizedBox(width: 1,height: 1,);}
                               }),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                    //     ],
+                    //   ),
+                    // ),
                   ],
-                ));
+                );
           },
         ),
-//        body: DefaultTabController(
-//            length: 2,
-//            child: Column(
-//              children: <Widget>[
-//                Container(
-//                  constraints: BoxConstraints(maxHeight: 150.0),
-//                  child: Material(
-//                    color: Theme.of(context).accentColor,
-//                    child: TabBar(
-//                      indicatorColor: Colors.blue,
-//                      tabs: [
-//                        Tab(icon: Icon(Icons.view_list)),
-//                        Tab(icon: Icon(Icons.grid_on)),
-//                      ],
-//                    ),
-//                  ),
-//                ),
-//                Expanded(
-//                  child: TabBarView(
-//                    children: [
-//                      Container(
-//                        child: ListView(
-//                          children: products.map((product) {
-//                            return Builder(
-//                              builder: (BuildContext context) {
-//                                return  InkWell(
-//                                  onTap: () {
-//                                    print('Card tapped.');
-//                                  },
-//                                  child: Column(
-//                                    crossAxisAlignment: CrossAxisAlignment.start,
-//                                    children: <Widget>[
-//                                      Divider(
-//                                        height: 0,
-//                                      ),
-//                                      Padding(
-//                                        padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-//                                        child: ListTile(
-//                                          trailing: Icon(Icons.navigate_next),
-//                                          leading: ClipRRect(
-//                                            borderRadius: BorderRadius.circular(5.0),
-//                                            child: Container(
-//                                              decoration: BoxDecoration(
-//                                                  color: Colors.blue
-//                                              ),
-//                                              child: CachedNetworkImage(
-//                                                fit: BoxFit.cover,
-//                                                imageUrl: product['image'],
-//                                                placeholder: (context, url) => Center(
-//                                                    child: CircularProgressIndicator()
-//                                                ),
-//                                                errorWidget: (context, url, error) => new Icon(Icons.error),
-//                                              ),
-//                                            ),
-//                                          ),
-//                                          title: Text(
-//                                            product['name'],
-//                                            style: TextStyle(
-//                                                fontSize: 14
-//                                            ),
-//                                          ),
-//                                          subtitle: Column(
-//                                            crossAxisAlignment: CrossAxisAlignment.start,
-//                                            children: <Widget>[
-//                                              Row(
-//                                                children: <Widget>[
-//                                                  Padding(
-//                                                    padding: const EdgeInsets.only(top: 2.0, bottom: 1),
-//                                                    child: Text('\$200', style: TextStyle(
-//                                                      color: Theme.of(context).accentColor,
-//                                                      fontWeight: FontWeight.w700,
-//                                                    )),
-//                                                  ),
-//                                                  Padding(
-//                                                    padding: const EdgeInsets.only(left: 6.0),
-//                                                    child: Text('(\$400)', style: TextStyle(
-//                                                        fontWeight: FontWeight.w700,
-//                                                        fontStyle: FontStyle.italic,
-//                                                        color: Colors.grey,
-//                                                        decoration: TextDecoration.lineThrough
-//                                                    )),
-//                                                  )
-//                                                ],
-//                                              ),
-//                                              Row(
-//                                                children: <Widget>[
-//                                                  SmoothStarRating(
-//                                                      allowHalfRating: false,
-//                                                      onRatingChanged: (v) {
-//                                                        product['rating'] = v;
-//                                                        setState(() {});
-//                                                      },
-//                                                      starCount: 5,
-//                                                      rating: product['rating'],
-//                                                      size: 16.0,
-//                                                      color: Colors.amber,
-//                                                      borderColor: Colors.amber,
-//                                                      spacing:0.0
-//                                                  ),
-//                                                  Padding(
-//                                                    padding: const EdgeInsets.only(left: 6.0),
-//                                                    child: Text('(4)', style: TextStyle(
-//                                                      fontWeight: FontWeight.w300,
-//                                                      color: Theme.of(context).primaryColor
-//                                                    )),
-//                                                  )
-//                                                ],
-//                                              )
-//                                            ],
-//                                          ),
-//                                        ),
-//                                      ),
-//                                    ],
-//                                  ),
-//                                );
-//                              },
-//                            );
-//                          }).toList(),
-//                        ),
-//                      ),
-//                      Container(
-//                        child: GridView.count(
-//                          shrinkWrap: true,
-//                          crossAxisCount: 2,
-//                          childAspectRatio: 0.7,
-//                          padding: EdgeInsets.only(top: 8, left: 6, right: 6, bottom: 12),
-//                          children: List.generate(products.length, (index) {
-//                            return Container(
-//                              child: Card(
-//                                clipBehavior: Clip.antiAlias,
-//                                child: InkWell(
-//                                  onTap: () {
-//                                    print('Card tapped.');
-//                                  },
-//                                  child: Column(
-//                                    crossAxisAlignment: CrossAxisAlignment.start,
-//                                    children: <Widget>[
-//                                      SizedBox(
-//                                        height: (MediaQuery.of(context).size.width / 2 - 5),
-//                                        width: double.infinity,
-//                                        child: CachedNetworkImage(
-//                                          fit: BoxFit.cover,
-//                                          imageUrl: products[index]['image'],
-//                                          placeholder: (context, url) => Center(
-//                                              child: CircularProgressIndicator()
-//                                          ),
-//                                          errorWidget: (context, url, error) => new Icon(Icons.error),
-//                                        ),
-//                                      ),
-//                                      Padding(
-//                                        padding: const EdgeInsets.only(top: 5.0),
-//                                        child: ListTile(
-//                                            title: Text(
-//                                              'Two Gold Rings',
-//                                              style: TextStyle(
-//                                                  fontWeight: FontWeight.bold,
-//                                                  fontSize: 16
-//                                              ),
-//                                            ),
-//                                          subtitle: Column(
-//                                            crossAxisAlignment: CrossAxisAlignment.start,
-//                                            children: <Widget>[
-//                                              Row(
-//                                                children: <Widget>[
-//                                                  Padding(
-//                                                    padding: const EdgeInsets.only(top: 2.0, bottom: 1),
-//                                                    child: Text('\$200', style: TextStyle(
-//                                                      color: Theme.of(context).accentColor,
-//                                                      fontWeight: FontWeight.w700,
-//                                                    )),
-//                                                  ),
-//                                                  Padding(
-//                                                    padding: const EdgeInsets.only(left: 6.0),
-//                                                    child: Text('(\$400)', style: TextStyle(
-//                                                        fontWeight: FontWeight.w700,
-//                                                        fontStyle: FontStyle.italic,
-//                                                        color: Colors.grey,
-//                                                        decoration: TextDecoration.lineThrough
-//                                                    )),
-//                                                  )
-//                                                ],
-//                                              ),
-//                                              Row(
-//                                                children: <Widget>[
-//                                                  SmoothStarRating(
-//                                                      allowHalfRating: false,
-//                                                      onRatingChanged: (v) {
-//                                                        products[index]['rating'] = v;
-//                                                        setState(() {});
-//                                                      },
-//                                                      starCount: 5,
-//                                                      rating: products[index]['rating'],
-//                                                      size: 16.0,
-//                                                      color: Colors.amber,
-//                                                      borderColor: Colors.amber,
-//                                                      spacing:0.0
-//                                                  ),
-//                                                  Padding(
-//                                                    padding: const EdgeInsets.only(left: 6.0),
-//                                                    child: Text('(4)', style: TextStyle(
-//                                                        fontWeight: FontWeight.w300,
-//                                                        color: Theme.of(context).primaryColor
-//                                                    )),
-//                                                  )
-//                                                ],
-//                                              )
-//                                            ],
-//                                          ),
-//                                        ),
-//                                      )
-//                                    ],
-//                                  ),
-//                                ),
-//                              ),
-//                            );
-//                          }),
-//                        ),
-//                      ),
-//                    ],
-//                  ),
-//                ),
-//              ],
-//            ))
+
       ),
     );
   }

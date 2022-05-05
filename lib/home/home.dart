@@ -1,24 +1,102 @@
+import 'dart:convert';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:glam0/localizations.dart';
+import 'package:http/http.dart' as http;
 
+import '../config.dart';
+import '../models/cat.dart';
+import '../models/item.dart';
 import 'drawer.dart';
 import 'slider.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
+  saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
+      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("pid",prd_id);
+    preferences.setString("pname",prd_name);
+    preferences.setString("pprice",prd_price);
+    preferences.setString("pimage",prd_image);
+    preferences.setString("pdescription",prd_description);
+    preferences.setString("pquantity",prd_quantity);
+    preferences.setString("pcolor",prd_color);
+    preferences.setString("psize",prd_size);
+    preferences.setString("pdate",prd_date);
+    preferences.setString("catid",catid);
+  }
+  saveCat(String cat_id,String cat_name) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("catid",cat_id);
+    preferences.setString("catname",cat_name);
+  }
+
+
+  List<cat> _cat = List<cat>.empty(growable: true);
+
+  Future<List<cat>> fetchCategories() async {
+    var response = await http.get(Uri.parse(CONFIG.CAT));
+    var cats = List<cat>.empty(growable: true);
+
+    if(response.statusCode == 200) {
+      var catsJson = json.decode(response.body);
+      for(var dataJson in catsJson){
+        cats.add(cat.fromJson(dataJson));
+      }
+
+    }
+
+    return cats;
+  }
+  List<item> _item = List<item>.empty(growable: true);
+
+  Future<List<item>> fetchItems() async {
+    var response = await http.get(Uri.parse(CONFIG.ITEM));
+    var items = List<item>.empty(growable: true);
+
+    if(response.statusCode == 200) {
+      var itemsJson = json.decode(response.body);
+      for(var dataJson in itemsJson){
+        items.add(item.fromJson(dataJson));
+      }
+
+    }
+
+    return items;
+  }
+
+
   final List<String> imgList = [
-    'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
-    'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80',
-    'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
-    'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
-    'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
-    'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
+    "assets/images/c2.jpg",
+    "assets/images/c4.jpg",
+    "assets/images/c6.jpg",
+    "assets/images/c5.jpg",
+    "assets/images/c1.jpg",
+    "assets/images/c3.jpg",
+    "assets/images/c7.jpg"
+
   ];
+  @override
+  initState(){
+    fetchCategories().then((value){
+      setState(() {
+        _cat = _cat.toList();
+        _cat.addAll(value);
+      });
+      fetchItems().then((value){
+        setState(() {
+          _item = _item.toList();
+          _item.addAll(value);
+        });
+      });
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,7 +143,7 @@ class _HomeState extends State<Home> {
                             AppLocalizations.of(context)!
                                 .translate('NEW_ARRIVALS') ?? '',
                             style: TextStyle(
-                                color: Theme.of(context).accentColor,
+                                color:  Colors.black,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700)),
                       ),
@@ -74,18 +152,27 @@ class _HomeState extends State<Home> {
                         height: 240.0,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
-                          children: imgList.map((i) {
-                            return Builder(
-                              builder: (BuildContext context) {
+                          children:  List.generate(_item.length, (index) {
                                 return Container(
                                   width: 140.0,
                                   child: Card(
                                     clipBehavior: Clip.antiAlias,
                                     child: InkWell(
                                       onTap: () {
+                                        saveItem(
+                                            _item[index].prd_id,
+                                            _item[index].prd_name,
+                                            _item[index].prd_price,
+                                            _item[index].prd_image,
+                                            _item[index].prd_description,
+                                            _item[index].prd_quantity,
+                                            _item[index].prd_color,
+                                            _item[index].prd_size,
+                                            _item[index].prd_date,
+                                            _item[index].cat_id
+                                        );
                                         Navigator.pushNamed(
-                                            context, '/products',
-                                            arguments: i);
+                                            context, '/products');
                                       },
                                       child: Column(
                                         crossAxisAlignment:
@@ -93,30 +180,26 @@ class _HomeState extends State<Home> {
                                         children: <Widget>[
                                           SizedBox(
                                             height: 160,
-                                            child: Hero(
-                                              tag: '$i',
-                                              child: CachedNetworkImage(
-                                                fit: BoxFit.cover,
-                                                imageUrl: i,
-                                                placeholder: (context, url) =>
-                                                    Center(
-                                                        child:
-                                                            CircularProgressIndicator()),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        new Icon(Icons.error),
-                                              ),
+                                              child:
+                                              Container(
+                                                decoration: BoxDecoration(
+                                                  image: DecorationImage(
+                                                    image: AssetImage('assets/images/'+_item[index].prd_image),
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
                                             ),
                                           ),
                                           ListTile(
                                             title: Text(
-                                              'Two Gold Rings',
-                                              style: TextStyle(fontSize: 14),
+                                              _item[index].prd_name,
+                                              style: TextStyle(fontSize: 14
+                                                  // ,color: Color(0xff9B9B9B)
+                                              ),
                                             ),
-                                            subtitle: Text('\$200',
+                                            subtitle: Text('\$'+_item[index].prd_price,
                                                 style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .accentColor,
+                                                    color:  Color(0xffDB3022),
                                                     fontWeight:
                                                         FontWeight.w700)),
                                           )
@@ -125,10 +208,9 @@ class _HomeState extends State<Home> {
                                     ),
                                   ),
                                 );
-                              },
-                            );
-                          }).toList(),
+                            }
                         ),
+                      ),
                       ),
                       Container(
                         child: Padding(
@@ -148,7 +230,7 @@ class _HomeState extends State<Home> {
                                 top: 8.0, left: 8.0, right: 8.0),
                             child: Text('Shop By Category',
                                 style: TextStyle(
-                                    color: Theme.of(context).accentColor,
+                                    color:  Colors.black,
                                     fontSize: 18,
                                     fontWeight: FontWeight.w700)),
                           ),
@@ -157,10 +239,11 @@ class _HomeState extends State<Home> {
                                 right: 8.0, top: 8.0, left: 8.0),
                             child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    primary: Theme.of(context).primaryColor
+                                    primary:  Color(0xffDB3022),
                                 ),
                                 child: Text('View All',
-                                    style: TextStyle(color: Colors.white)),
+                                    style: TextStyle(
+                                        color: Colors.white)),
                                 onPressed: () {
                                   Navigator.pushNamed(context, '/categorise');
                                 }),
@@ -174,12 +257,15 @@ class _HomeState extends State<Home> {
                           crossAxisCount: 2,
                           padding: EdgeInsets.only(
                               top: 8, left: 6, right: 6, bottom: 12),
-                          children: List.generate(4, (index) {
+                          children: List.generate(_cat.length, (index) {
                             return Container(
                               child: Card(
                                 clipBehavior: Clip.antiAlias,
                                 child: InkWell(
                                   onTap: () {
+                                    saveCat(_cat[index].cat_id,_cat[index].cat_name);
+                                    Navigator.pushNamed(
+                                        context, '/Clothes');
                                     print('Card tapped.');
                                   },
                                   child: Column(
@@ -192,19 +278,19 @@ class _HomeState extends State<Home> {
                                                     2) -
                                                 70,
                                         width: double.infinity,
-                                        child: CachedNetworkImage(
-                                          fit: BoxFit.cover,
-                                          imageUrl: imgList[index],
-                                          placeholder: (context, url) => Center(
-                                              child:
-                                                  CircularProgressIndicator()),
-                                          errorWidget: (context, url, error) =>
-                                              new Icon(Icons.error),
+                                        child:
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                              image: AssetImage('assets/images/'+_cat[index].cat_image),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                       ListTile(
                                           title: Text(
-                                        'Two Gold Rings',
+                                            _cat[index].cat_name,
                                         style: TextStyle(
                                             fontWeight: FontWeight.w700,
                                             fontSize: 16),

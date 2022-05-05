@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:glam0/blocks/auth_block.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:glam0/settings.dart';
 
 class AppDrawer extends StatefulWidget {
   @override
@@ -8,6 +10,33 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
+  bool isSignin=false;
+  var name;
+  var email;
+  savePref(String name,String email,String password,String phone,String address,bool isSignin) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("name",name);
+    preferences.setString("email",email);
+    preferences.setString("password",password);
+    preferences.setString("phone",phone);
+    preferences.setString("address",address);
+    preferences.setBool("isSignin",isSignin);
+  }
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      name = preferences.getString("name");
+      email = preferences.getString("email");
+      isSignin = preferences.getBool("isSignin")!;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getPref();
+  }
+
   @override
   Widget build(BuildContext context) {
     AuthBlock auth = Provider.of<AuthBlock>(context);
@@ -32,7 +61,7 @@ class _AppDrawerState extends State<AppDrawer> {
             shrinkWrap: true,
             children: <Widget>[
               ListTile(
-                leading: Icon(Icons.home, color: Theme.of(context).accentColor),
+                leading: Icon(Icons.home, color:  Color(0xffDB3022)),
                 title: Text('Home'),
                 onTap: () {
                   Navigator.pop(context);
@@ -40,7 +69,7 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
               ListTile(
                 leading: Icon(Icons.shopping_basket,
-                    color: Theme.of(context).accentColor),
+    color:  Color(0xffDB3022)),
                 title: Text('Shop'),
                 trailing: Text('New',
                     style: TextStyle(color: Theme.of(context).primaryColor)),
@@ -51,16 +80,16 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
               ListTile(
                 leading:
-                    Icon(Icons.category, color: Theme.of(context).accentColor),
+                    Icon(Icons.category, color:  Color(0xffDB3022)),
                 title: Text('Categorise'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/categorise');
                 },
               ),
-              ListTile(
+              isSignin ? ListTile(
                 leading:
-                    Icon(Icons.favorite, color: Theme.of(context).accentColor),
+                    Icon(Icons.favorite, color:  Color(0xffDB3022)),
                 title: Text('My Wishlist'),
                 trailing: Container(
                   padding: const EdgeInsets.all(10.0),
@@ -75,10 +104,10 @@ class _AppDrawerState extends State<AppDrawer> {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/wishlist');
                 },
-              ),
-              ListTile(
+              ):ListTile(),
+              isSignin ? ListTile(
                 leading: Icon(Icons.shopping_cart,
-                    color: Theme.of(context).accentColor),
+                    color:  Color(0xffDB3022)),
                 title: Text('My Cart'),
                 trailing: Container(
                   padding: const EdgeInsets.all(10.0),
@@ -93,33 +122,43 @@ class _AppDrawerState extends State<AppDrawer> {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/cart');
                 },
-              ),
-              ListTile(
-                leading: Icon(Icons.lock, color: Theme.of(context).accentColor),
-                title: Text('Login'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/auth');
-                },
-              ),
+              ):
+              ListTile(),
               Divider(),
-              ListTile(
+              isSignin ?ListTile(
                 leading:
-                    Icon(Icons.settings, color: Theme.of(context).accentColor),
+                    Icon(Icons.settings, color:  Colors.black),
                 title: Text('Settings'),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/settings');
                 },
-              ),
+              ):ListTile(),
+              isSignin ?
               ListTile(
                 leading: Icon(Icons.exit_to_app,
-                    color: Theme.of(context).accentColor),
+                    color:  Colors.black),
                 title: Text('Logout'),
                 onTap: () async {
-                  await auth.logout();
+                  isSignin=false;
+                  SharedPreferences preferences = await SharedPreferences.getInstance();
+                  preferences.remove("name");
+                  preferences.remove("email");
+                  setState(() {
+                    savePref("name", "", "", "", "",false);
+                  });
+                  Navigator.pushNamed(context, '/home/home');
                 },
-              )
+              ):
+              ListTile(
+                leading: Icon(Icons.lock, color:  Colors.black),
+                title: Text('Login'),
+                onTap: () {
+                  isSignin=true;
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/auth');
+                },
+              ),
             ],
           ),
         )

@@ -12,7 +12,7 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   final _formKey = GlobalKey<FormState>();
-  final User user = User(password: '', name: '', email: '', address: '', phone: '');
+  final User user = User(id: '',password: '', name: '', email: '', address: '', phone: '');
   late String confirmPassword;
   @override
   Widget build(BuildContext context) {
@@ -149,24 +149,25 @@ class _SignUpState extends State<SignUp> {
                   Padding(
                     padding: const EdgeInsets.only(top: 25.0),
                     child: SizedBox(
-                      width: double.infinity,
+                      width: 150,
                       height: 50,
-                      child: Consumer<AuthBlock>(builder:
+                      child: Consumer<AuthBlock>(
+                          builder:
                           (BuildContext context, AuthBlock auth, Widget? child) {
                         return RaisedButton(
-                          color: Theme.of(context).primaryColor,
+                          color: Color(0xffDB3022),
                           textColor: Colors.white,
                           child: auth.loading && auth.loadingType == 'register' ? CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ) : Text('Sign Up'),
                           onPressed: () {
-                            if (_formKey.currentState!.validate() && !auth.loading) {
+                            // if (_formKey.currentState!.validate() && !auth.loading) {
                               _formKey.currentState!.save();
                               // If the form is valid, display a snackbar. In the real world,
                               // you'd often call a server or save the information in a database.
                               auth.register(user);
                               Navigator.pushNamed(context, '/settings');
-                            }
+                            // }
                           },
                         );
                       }),

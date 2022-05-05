@@ -14,6 +14,7 @@ class Auth extends StatelessWidget {
     final AuthBlock authBlock = Provider.of<AuthBlock>(context);
     return Scaffold(
       appBar: AppBar(
+          backgroundColor: Color(0xffDB3022),
         title: Text(authBlock.currentIndex == 0 ? 'Sign In' : 'Create Account'),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -28,7 +29,7 @@ class Auth extends StatelessWidget {
           ),
         ],
         currentIndex: authBlock.currentIndex,
-        selectedItemColor: Colors.amber[800],
+        selectedItemColor: Color(0xffDB3022),
         onTap: (num){
            authBlock.currentIndex = num;
         },

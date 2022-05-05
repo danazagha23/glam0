@@ -42,21 +42,24 @@ class AuthBlock extends ChangeNotifier {
   setUser() async {
     _user = await _authService.getUser();
     isLoggedIn = _user == null ? false : true;
+
     notifyListeners();
   }
-
+  late String a;
   login(UserCredential userCredential) async {
-    loading = true;
+    // loading = true;
     loadingType = 'login';
-    await _authService.login(userCredential);
+    a = await _authService.login(userCredential);
     setUser();
-    loading = false;
+     loading = false;
   }
 
+
   register(User user) async {
-    loading = true;
+    // loading = true;
     loadingType = 'register';
     await _authService.register(user);
+    // setUser();
     loading = false;
   }
 

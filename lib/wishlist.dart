@@ -1,6 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_rating_stars/flutter_rating_stars.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../config.dart';
+import '../models/item.dart';
+import 'config.dart';
+import 'models/wish.dart';
 
 class WishList extends StatefulWidget {
   @override
@@ -8,24 +16,75 @@ class WishList extends StatefulWidget {
 }
 
 class _WishlistState extends State<WishList> {
+  saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
+      String prd_description) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("pid",prd_id);
+    preferences.setString("pname",prd_name);
+    preferences.setString("pprice",prd_price);
+    preferences.setString("pimage",prd_image);
+    preferences.setString("pdescription",prd_description);
+  }
+  var cust_id ;
 
-  final List<Map<dynamic, dynamic>> products = [
-    {'name': 'IPhone', 'rating': 3.0, 'image': 'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80'},
-    {'name': 'IPhone X 2', 'rating': 3.0, 'image': 'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 11', 'rating': 4.0, 'image': 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80'},
-    {'name': 'IPhone 12', 'rating': 5.0, 'image': 'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80'},
-  ];
+  Future getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      cust_id = preferences.getString("cust_id")??'';
+    });
+  }
+
+
+  Future deleteItem(String id) async {
+    await http.post(Uri.parse(CONFIG.WISHDEL),
+        body: {
+          'pro_id': id
+        }
+    );
+  }
+  List<wish> products = List<wish>.empty(growable: true);
+
+  Future<List<wish>> fetchItems() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      cust_id = preferences.getString("cust_id")??'';
+    });
+    var response = await http.post(Uri.parse(CONFIG.WISHPRO),
+        body: {
+          'cust_id': cust_id
+        });
+
+    var items = List<wish>.empty(growable: true);
+
+    if(response.statusCode == 200) {
+      var itemsJson = json.decode(response.body);
+      for(var dataJson in itemsJson){
+        items.add(wish.fromJson(dataJson));
+      }
+
+    }
+
+    return items;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getPref();
+    fetchItems().then((value){
+      setState(() {
+        products = products.toList();
+        products.addAll(value);
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xffDB3022),
         title: Text('Wishlist'),
       ),
       body: ListView.builder(
@@ -42,14 +101,15 @@ class _WishlistState extends State<WishList> {
               if(direction == DismissDirection.endToStart) {
                 // Then show a snackbar.
                 Scaffold.of(context)
-                    .showSnackBar(SnackBar(content: Text(item['name'] + " dismissed"), duration: Duration(seconds: 1)));
+                    .showSnackBar(SnackBar(content: Text(item.prd_name + " dismissed"), duration: Duration(seconds: 1)));
               } else {
                 // Then show a snackbar.
                 Scaffold.of(context)
-                    .showSnackBar(SnackBar(content: Text(item['name'] + " added to carts"), duration: Duration(seconds: 1)));
+                    .showSnackBar(SnackBar(content: Text(item.prd_name + " added to carts"), duration: Duration(seconds: 1)));
               }
               // Remove the item from the data source.
               setState(() {
+                deleteItem(item.product_id);
                 products.removeAt(index);
               });
             },
@@ -83,6 +143,15 @@ class _WishlistState extends State<WishList> {
             ),
             child: InkWell(
               onTap: () {
+                saveItem(
+                    item.product_id,
+                    item.prd_name,
+                    item.prd_price,
+                    item.prd_image,
+                    item.prd_description
+                );
+                Navigator.pushNamed(
+                    context, '/products');
                 print('Card tapped.');
               },
               child: Column(
@@ -103,7 +172,7 @@ class _WishlistState extends State<WishList> {
                           ),
                           child: CachedNetworkImage(
                             fit: BoxFit.cover,
-                            imageUrl: item['image'],
+                            imageUrl: 'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
                             placeholder: (context, url) => Center(
                                 child: CircularProgressIndicator()
                             ),
@@ -112,7 +181,7 @@ class _WishlistState extends State<WishList> {
                         ),
                       ),
                       title: Text(
-                        item['name'],
+                        item.prd_name,
                         style: TextStyle(
                             fontSize: 14
                         ),
@@ -124,30 +193,16 @@ class _WishlistState extends State<WishList> {
                             children: <Widget>[
                               Padding(
                                 padding: const EdgeInsets.only(top: 2.0, bottom: 1),
-                                child: Text('\$200', style: TextStyle(
+                                child: Text('\$'+item.prd_price, style: TextStyle(
                                   color: Theme.of(context).accentColor,
                                   fontWeight: FontWeight.w700,
-                                )),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 6.0),
-                                child: Text('(\$400)', style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontStyle: FontStyle.italic,
-                                    color: Colors.grey,
-                                    decoration: TextDecoration.lineThrough
                                 )),
                               )
                             ],
                           ),
                           Row(
                             children: <Widget>[
-                              RatingStars(
-                                value: item['rating'],
-                                starSize: 16,
-                                valueLabelColor: Colors.amber,
-                                starColor: Colors.amber,
-                              )
+
                             ],
                           )
                         ],

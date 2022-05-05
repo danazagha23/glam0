@@ -2,30 +2,61 @@ import 'package:flutter/material.dart';
 import 'package:glam0/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'blocks/auth_block.dart';
+import 'edit_profile_page.dart';
+
+
+
 class Settings extends StatefulWidget {
   @override
   _SettingsState createState() => _SettingsState();
 }
 
 class _SettingsState extends State<Settings> {
-  bool isSignin= false;
-  var name;
+  late profile p;
+  late AuthBlock auth;
+  late bool isSignin;
+  var name ;
   var email;
+  var password ;
+  var phone;
+  var address ;
+
+  savePref(String name,String email,String password,String phone,String address,bool isSignin) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("cust_name",name);
+    preferences.setString("email",email);
+    preferences.setString("password",password);
+    preferences.setString("phone",phone);
+    preferences.setString("address",address);
+    preferences.setBool("isSignin",isSignin);
+  }
   getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
-       name = preferences.getString("name");
-       email = preferences.getString("email");
-      isSignin= true;
+       name = preferences.getString("cust_name")??'';
+       email = preferences.getString("email")??'';
+       password = preferences.getString("password")??'';
+       phone = preferences.getString("phone")??'';
+       address = preferences.getString("address")??'';
+       isSignin = preferences.getBool("isSignin")!;
+
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    final User user = User(password: '', name: '', email: '', address: '', phone: '');
+  void initState() {
+    super.initState();
+    isSignin= false;
     getPref();
+  }
+  @override
+  Widget build(BuildContext context) {
+    final User user = User(id: '',password: '', name: '', email: '', address: '', phone: '');
+    // getPref();
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Color(0xffDB3022),
           title: Text('Settings'),
         ),
         body: SafeArea(
@@ -41,18 +72,18 @@ class _SettingsState extends State<Settings> {
                         image: NetworkImage("https://images.pexels.com/photos/236047/pexels-photo-236047.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"),
                       ),
                     ),
-                    child: Container(
-                      margin: EdgeInsets.only(right: 10, bottom: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: new BorderRadius.circular(60),
-                      ),
-                      padding: const EdgeInsets.all(10.0),
-                      child: Icon(
-                        Icons.camera_alt,
-                        color: Colors.white, size: 32,
-                      ),
-                    ),
+                    // child: Container(
+                    //   margin: EdgeInsets.only(right: 10, bottom: 10),
+                    //   decoration: BoxDecoration(
+                    //     color: Theme.of(context).primaryColor,
+                    //     borderRadius: new BorderRadius.circular(60),
+                    //   ),
+                    //   padding: const EdgeInsets.all(10.0),
+                    //   child: Icon(
+                    //     Icons.camera_alt,
+                    //     color: Colors.white, size: 32,
+                    //   ),
+                    // ),
                   ),
                   Column(
                     children: <Widget>[
@@ -60,7 +91,7 @@ class _SettingsState extends State<Settings> {
                         margin: EdgeInsets.only(bottom: 0),
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).accentColor,
+                          color: Colors.white,
                           border: Border(
                             bottom: BorderSide( //                   <--- left side
                               color: Colors.grey.shade300,
@@ -73,7 +104,7 @@ class _SettingsState extends State<Settings> {
                           child:
                           isSignin ? Text(
                             name,
-                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            style: TextStyle(color: Colors.black, fontSize: 16),
                           ):
                           Text(""),
                       )
@@ -83,60 +114,71 @@ class _SettingsState extends State<Settings> {
                     child:  ListView(
                       shrinkWrap: true,
                       children: <Widget>[
-                        Card(
+                    isSignin? Card(
                           child: ListTile(
-                            leading: Icon(Icons.edit, color: Theme.of(context).accentColor, size: 28,),
-                            title: Text('Profile', style: TextStyle(color: Colors.black, fontSize: 17)),
+                            onTap: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => profile(),),);
+                              },
+                            leading: Icon(Icons.edit, color: Colors.black, size: 28,),
+                            title: Text('Your information', style: TextStyle(color: Colors.black, fontSize: 17)),
                             trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
                           ),
-                        ),
-                        Card(
+                        ):Card(),
+                    isSignin?Card(
                           child: ListTile(
-                            leading: Icon(Icons.notifications, color: Theme.of(context).accentColor, size: 28,),
+                            leading: Icon(Icons.notifications, color: Colors.black, size: 28,),
                             title: Text('Notifications', style: TextStyle(color: Colors.black, fontSize: 17)),
                             trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
                           ),
-                        ),
-                        Card(
+                        ):Card(),
+                    isSignin?Card(
                           child: ListTile(
-                            leading: Icon(Icons.panorama, color: Theme.of(context).accentColor, size: 28,),
-                            title: Text('Progress', style: TextStyle(color: Colors.black, fontSize: 17)),
+                            onTap:(){
+                              Navigator.pushNamed(context, '/cart');
+                            } ,
+                            leading: Icon(Icons.panorama, color: Colors.black, size: 28,),
+                            title: Text('My cart', style: TextStyle(color: Colors.black, fontSize: 17)),
                             trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
                           ),
-                        ),
-                        Card(
+                        ):Card(),
+                    isSignin?Card(
                           child: ListTile(
-                            leading: Icon(Icons.favorite, color: Theme.of(context).accentColor, size: 28,),
+                            onTap:(){
+                                Navigator.pushNamed(context, '/wishlist');
+                            } ,
+                            leading: Icon(Icons.favorite, color: Colors.black, size: 28,),
                             title: Text('Favorite', style: TextStyle(color: Colors.black, fontSize: 17)),
                             trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
                           ),
-                        ),
+                        ):Card(),
                         Card(
-                          child: ListTile(
-                            leading: Icon(Icons.feedback, color: Theme.of(context).accentColor, size: 28,),
-                            title: Text('Feedback', style: TextStyle(color: Colors.black, fontSize: 17)),
-                            trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
-                          ),
-                        ),
-                        Card(
-                          child:  ListTile(
-                            leading: Icon(Icons.add_photo_alternate, color: Theme.of(context).accentColor, size: 28,),
-                            title: Text('About Us', style: TextStyle(color: Colors.black, fontSize: 17)),
-                            trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            leading: Icon(Icons.vpn_key, color: Theme.of(context).accentColor, size: 28,),
-                            title: Text('Change Password', style: TextStyle(color: Colors.black, fontSize: 17)),
-                            trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
-                          ),
-                        ),
-                        Card(
-                          child: ListTile(
-                            leading: Icon(Icons.lock, color: Theme.of(context).accentColor, size: 28,),
+                          child:
+                          isSignin ? ListTile(
+                            leading: Icon(Icons.lock, color: Colors.black, size: 28,),
                             title: Text('Logout', style: TextStyle(color: Colors.black, fontSize: 17)),
                             trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
+                            onTap: () async{
+
+                              SharedPreferences preferences = await SharedPreferences.getInstance();
+                              setState(() {
+                                savePref(name, email, password, phone, address,false);
+                                // isSignin=false;
+                              });
+                              preferences.remove("name");
+                              preferences.remove("email");
+                              preferences.remove("password");
+                              preferences.remove("phone");
+                              preferences.remove("address");
+
+                              Navigator.pushNamed(context, '/settings');
+                            },
+                          ):ListTile(
+                            leading: Icon(Icons.lock, color: Theme.of(context).accentColor, size: 28,),
+                            title: Text('Login', style: TextStyle(color: Colors.black, fontSize: 17)),
+                            trailing: Icon(Icons.keyboard_arrow_right, color: Theme.of(context).accentColor),
+                            onTap: (){
+                              Navigator.pushNamed(context, '/auth');
+                            },
                           ),
                         ),
                       ],
