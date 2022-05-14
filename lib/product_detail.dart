@@ -1,13 +1,12 @@
 import 'dart:convert';
-import 'package:like_button/like_button.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_stars/flutter_rating_stars.dart';
+import 'package:glam0/get_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:fluttertoast/fluttertoast.dart';
-import '../models/item.dart';
 import 'config.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
+import 'models/store.dart';
 
 class Product extends StatefulWidget {
   @override
@@ -15,6 +14,8 @@ class Product extends StatefulWidget {
 }
 
 class _ProductState extends State<Product> {
+
+
   var prd_id;
   var prd_name;
   var prd_price;
@@ -25,6 +26,8 @@ class _ProductState extends State<Product> {
   var prd_size;
   var prd_date;
   var catid;
+  var storeid;
+  // String s = '';
   getItem() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
@@ -38,6 +41,7 @@ class _ProductState extends State<Product> {
       prd_size = preferences.getString("psize")!;
       prd_date = preferences.getString("pdate")!;
       catid = preferences.getString("pcatid")!;
+      storeid = preferences.getString("pstoreid")!;
     });
   }
   var selected_size;
@@ -45,12 +49,7 @@ class _ProductState extends State<Product> {
 
   var cust_id ;
 
-  getPref() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
-      cust_id = preferences.getString("cust_id")??'';
-    });
-  }
+
   Future cartTapped() async{
     var quantity = '1';
     final response = await http.post(Uri.parse(CONFIG.CART),
@@ -63,7 +62,50 @@ class _ProductState extends State<Product> {
         }
     );
   }
-  bool _isFavorited = false;
+
+  // String store = '';
+  // Future getStoreName(var s,var p) async{
+  //   final response = await http.post(Uri.parse(CONFIG.STORE_DET),
+  //       body: {
+  //         'store_id': s.toString(),
+  //         'prd_id': p.toString()
+  //       }
+  //   );
+  //   store=jsonDecode(response.body);
+  // }
+
+
+  getPref() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    setState(() {
+      cust_id = preferences.getString("cust_id")??'';
+    });
+    getLike();
+    String si =storeid;
+    String pi =prd_id;
+    getStoreName(si,pi);
+  }
+
+  late bool _isFavorited ;
+
+  Future getLike() async {
+    final response = await http.post(Uri.parse(CONFIG.WISHCHECK),
+        body: {
+          'prd_id':prd_id,
+          'cust_id':cust_id
+        }
+    );
+
+      setState(() {
+      if(response.body.contains("true")) {
+        _isFavorited=true;
+      }
+      else {
+          _isFavorited=false;
+      }
+      });
+  }
+
   void onLikeButtonTapped() async{
       if(_isFavorited) {
         setState(() {
@@ -91,19 +133,27 @@ class _ProductState extends State<Product> {
   List listSize = new List.empty(growable: true);
   List listColor = new List.empty(growable: true);
 
+  saveCat(String cat_id,String cat_name) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("catid",cat_id);
+    preferences.setString("catname",cat_name);
+  }
+
 
   @override
   void initState() {
     // TODO: implement initState
+      _isFavorited = false;
+      getItem();
+      getPref();
+
     super.initState();
-    getItem();
-    getPref();
   }
 
   Color getColor(String color) {
     switch (color) {
     //add more color as your wish
-      case "Colors.red":
+      case "red":
         return Colors.red;
       case "blue":
         return Colors.blue;
@@ -113,21 +163,20 @@ class _ProductState extends State<Product> {
         return Colors.orange;
       case "green":
         return Colors.green;
-      case "Colors.white":
-        return Colors.green;
+      case "white":
+        return Colors.white;
       default:
         return Colors.transparent;
     }
   }
   @override
   Widget build(BuildContext context) {
-    bool isLiked =false;
     listColor = prd_color.split(",");
     listSize = prd_size.split(",");
     return Scaffold(
       appBar: AppBar(
         backgroundColor:  Color(0xffDB3022),
-        title: Text('Product Detail'),
+        title: Text('Product Details'),
       ),
       body: SafeArea(
           top: false,
@@ -140,14 +189,12 @@ class _ProductState extends State<Product> {
                   height: 300,
                   child:
                   Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/'+prd_image),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
+                      child: Image.memory(
+                        base64Decode(prd_image),
+                        fit: BoxFit.cover,
+                      )
                   ),
-                  ),
+                ),
 
                 Padding(
                   padding: const EdgeInsets.only(left: 15, right: 15),
@@ -182,18 +229,6 @@ class _ProductState extends State<Product> {
                                     onPressed: onLikeButtonTapped,
                                   ),
                                 ),
-                                // LikeButton(
-                                //   size: 35,
-                                //   isLiked: isLiked,
-                                //   circleColor:
-                                //   CircleColor(start: Color(0xff00ddff), end: Color(0xff0099cc)),
-                                //   bubblesColor: BubblesColor(
-                                //     dotPrimaryColor: Color(0xff33b5e5),
-                                //     dotSecondaryColor: Color(0xff0099cc),
-                                //   ),
-                                //
-                                //   onTap: onLikeButtonTapped,
-                                // ),
                               ],
                             ),
                           ],
@@ -321,8 +356,12 @@ class _ProductState extends State<Product> {
                               ),
                               onPressed: () {
                                 cartTapped();
-                                Navigator.pushNamed(context, '/cart');
-
+                                Fluttertoast.showToast(
+                                    msg: 'Added to cart',
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.CENTER,
+                                    timeInSecForIosWeb: 1,
+                                    fontSize: 16.0);
                               },
                               child: Text(
                                 "Add to cart".toUpperCase(),
@@ -330,6 +369,26 @@ class _ProductState extends State<Product> {
                             ),
 
                           ),
+                          ),
+                          Container(
+                              alignment: Alignment(-1.0, -1.0),
+                              child: Padding(
+                                padding: const EdgeInsets.only(top:10.0 ,bottom: 10.0),
+                                child: Text(
+                                    'Store',
+                                  style: TextStyle(color: Colors.black, fontSize: 20,  fontWeight: FontWeight.w600),
+                                ),
+                              )
+                          ),
+                          Container(
+                              alignment: Alignment(-1.0, -1.0),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 10.0),
+                                child: Text(
+                                  storee,
+                                  style: TextStyle(color: Colors.black, fontSize: 16),
+                                ),
+                              )
                           ),
                           Container(
                               alignment: Alignment(-1.0, -1.0),

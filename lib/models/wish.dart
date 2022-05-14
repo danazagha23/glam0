@@ -17,7 +17,7 @@ class wish {
         product_id: json['prd_id'],
         prd_name: json['prd_name'],
         prd_price: json['prd_price'],
-        prd_image: json['prd_image'],
+        prd_image: json['image_id'],
         prd_description: json['prd_description'],
         date: json['prd_date']
     );

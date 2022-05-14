@@ -69,7 +69,8 @@ class _CheckoutState extends State<Checkout> {
       var itemsJson = json.decode(response.body);
       for(var dataJson in itemsJson){
         items.add(cart.fromJson(dataJson));
-        // i = i + int.parse(cart.fromJson(dataJson).prd_price);
+        // i = i + int.parse(cart.fromJson(dataJson).prd_price)*int.parse(cart.fromJson(dataJson).quantity);
+        quantity = int.parse(cart.fromJson(dataJson).quantity);
       }
 
     }
@@ -140,8 +141,10 @@ class _CheckoutState extends State<Checkout> {
             Flexible(
               child: ListView.builder(
                   itemCount: products.length,
+
                   itemBuilder: (context, index) {
                     final item = products[index];
+                    String s = item.prd_image;
                     _quantityController.add(new TextEditingController());
                     return Dismissible(
                       // Each Dismissible must contain a Key. Keys allow Flutter to
@@ -161,6 +164,7 @@ class _CheckoutState extends State<Checkout> {
                         }
                         // Remove the item from the data source.
                         setState(() {
+                          i = i - int.parse(item.prd_price)*int.parse(item.quantity);
                           deleteItem(item.product_id);
                           products.removeAt(index);
                         });
@@ -176,6 +180,7 @@ class _CheckoutState extends State<Checkout> {
                               padding: const EdgeInsets.only(left: 20.0),
                               child: Icon(Icons.delete, color: Colors.white),
                             ),
+
                           ],
                         ),
                       ),
@@ -203,7 +208,8 @@ class _CheckoutState extends State<Checkout> {
                               item.prd_description,
                               item.quantity
                           );
-                          Navigator.pushNamed(context, '/products');
+                          Navigator.pushNamed(
+                              context, '/products');
                           print('Card tapped.');
                         },
                         child: Column(
@@ -223,13 +229,11 @@ class _CheckoutState extends State<Checkout> {
                                         color: Colors.blue
                                     ),
                                     child:
-                                    CachedNetworkImage(
-                                      fit: BoxFit.cover,
-                                      imageUrl: 'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
-                                      placeholder: (context, url) => Center(
-                                          child: CircularProgressIndicator()
-                                      ),
-                                      errorWidget: (context, url, error) => new Icon(Icons.error),
+                                    Container(
+                                        child: Image.memory(
+                                          base64Decode(s),
+                                          fit: BoxFit.cover,
+                                        )
                                     ),
                                   ),
                                 ),
@@ -257,6 +261,7 @@ class _CheckoutState extends State<Checkout> {
                                                 Expanded(
                                                     child: Text('\$ ${item.prd_price }')
                                                 ),
+
                                                 Container(
                                                     margin: const EdgeInsets.only(top: 8.0),
                                                     color: Colors.white,
@@ -278,10 +283,12 @@ class _CheckoutState extends State<Checkout> {
                                                                     'quantity': quantity.toString()
                                                                   }
                                                               );
-                                                              i = i - int.parse(item.prd_price);
-                                                            }else if(quantity == 0){
                                                               setState(() {
                                                                 i = i - int.parse(item.prd_price);
+                                                              });
+                                                            }else if(quantity == 0){
+                                                              setState(() {
+                                                                i = i - (int.parse(item.prd_price)*int.parse(item.quantity));
                                                                 deleteItem(item.product_id);
                                                                 products.removeAt(index);
                                                               });

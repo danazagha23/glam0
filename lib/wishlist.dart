@@ -79,7 +79,16 @@ class _WishlistState extends State<WishList> {
       });
     });
   }
-
+  // String base64string='';
+  // Future getimage(String i,String p) async{
+  //   final response = await http.post(Uri.parse(CONFIG.ROOT),
+  //       body: {
+  //         'image_id': i,
+  //         'prd_id': p
+  //       }
+  //   );
+  //   base64string=response.body;
+  // }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +100,8 @@ class _WishlistState extends State<WishList> {
         itemCount: products.length,
         itemBuilder: (context, index) {
           final item = products[index];
+          String s =item.prd_image;
+          // getimage(item.prd_image,item.product_id);
           return Dismissible(
             // Each Dismissible must contain a Key. Keys allow Flutter to
             // uniquely identify widgets.
@@ -170,13 +181,12 @@ class _WishlistState extends State<WishList> {
                           decoration: BoxDecoration(
                               color: Colors.blue
                           ),
-                          child: CachedNetworkImage(
-                            fit: BoxFit.cover,
-                            imageUrl: 'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
-                            placeholder: (context, url) => Center(
-                                child: CircularProgressIndicator()
-                            ),
-                            errorWidget: (context, url, error) => new Icon(Icons.error),
+                          child:
+                          Container(
+                              child: Image.memory(
+                                base64Decode(s),
+                                fit: BoxFit.cover,
+                              )
                           ),
                         ),
                       ),

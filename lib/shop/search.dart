@@ -1,13 +1,50 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../config.dart';
+import '../models/cat.dart';
 class ShopSearch extends StatefulWidget {
   @override
   _ShopSearchState createState() => _ShopSearchState();
 }
 
+
 class _ShopSearchState extends State<ShopSearch> {
-  String dropdownValue = 'One';
+  saveSearch(String cat,String fprice,String sprice) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("search_cat",cat);
+    preferences.setString("search_fprice",fprice);
+    preferences.setString("search_sprice",sprice);
+  }
+  ////GET ALL STORES
+  // List<store> _store = List<store>.empty(growable: true);
+  //
+  // Future<List<store>> fetchStores() async {
+  //   var response = await http.get(Uri.parse(CONFIG.CAT));
+  //   var stores = List<store>.empty(growable: true);
+  //
+  //   if(response.statusCode == 200) {
+  //     var catsJson = json.decode(response.body);
+  //     for(var dataJson in catsJson){
+  //       stores.add(store.fromJson(dataJson));
+  //     }
+  //
+  //   }
+  //
+  //   return stores;
+  // }
+
+  String cat = '';
+  var fprice;
+  var sprice;
+
+
+  String dropdownValue = 'Clothes';
   RangeValues _values = RangeValues(0.0, 500.0);
+
   Widget build(BuildContext context) {
     return Container(
       height: 425,
@@ -53,16 +90,16 @@ class _ShopSearchState extends State<ShopSearch> {
                       onChanged: (String? newValue) {
                         setState(() {
                           dropdownValue = newValue!;
+                          cat = dropdownValue;
                         });
                       },
-                      items: <String>['One', 'Two', 'Free', 'Four']
+                      items: <String>['Clothes', 'Shoes', 'Accessories']
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
                         );
-                      })
-                          .toList(),
+                      }).toList(),
                     ),
                   ),
                 ),
@@ -82,11 +119,15 @@ class _ShopSearchState extends State<ShopSearch> {
                       setState(() {
                         if (values.end - values.start >= 20) {
                           _values = values;
+                          fprice = values.start;
+                          sprice = values.end;
                         } else {
                           if (_values.start == values.start) {
                             _values = RangeValues(_values.start, _values.start + 20);
+                            fprice = values.start;
                           } else {
                             _values = RangeValues(_values.end - 20, _values.end);
+                            sprice = values.end;
                           }
                         }
                       });
@@ -139,7 +180,10 @@ class _ShopSearchState extends State<ShopSearch> {
                         minWidth: double.infinity,
                         height: 40.0,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            saveSearch(cat,fprice.toString(),sprice.toString());
+                            Navigator.pushNamed(context, '/filter');
+                          },
                           child: Text(
                             "Apply Filters",
                             style: TextStyle(color: Colors.white, fontSize: 16),

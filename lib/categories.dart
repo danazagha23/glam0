@@ -28,11 +28,7 @@ class _CategoriesState extends State<Categories> {
   List<cat> _cat = List<cat>.empty(growable: true);
 
   Future<List<cat>> fetchCategories() async {
-    var response = await http.get(Uri.parse(CONFIG.CAT),headers: {
-    "Accept": "application/json",
-      "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PUT, DELETE, HEAD"
-    });
+    var response = await http.get(Uri.parse(CONFIG.CAT));
     var cats = List<cat>.empty(growable: true);
 
     if(response.statusCode == 200) {

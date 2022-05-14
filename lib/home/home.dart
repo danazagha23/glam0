@@ -7,7 +7,9 @@ import 'package:http/http.dart' as http;
 
 import '../config.dart';
 import '../models/cat.dart';
+import '../models/image.dart';
 import '../models/item.dart';
+import '../get_store.dart';
 import 'drawer.dart';
 import 'slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +20,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
-      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid) async{
+      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("pid",prd_id);
     preferences.setString("pname",prd_name);
@@ -29,7 +31,8 @@ class _HomeState extends State<Home> {
     preferences.setString("pcolor",prd_color);
     preferences.setString("psize",prd_size);
     preferences.setString("pdate",prd_date);
-    preferences.setString("catid",catid);
+    preferences.setString("pcatid",catid);
+    preferences.setString("pstoreid",storeid);
   }
   saveCat(String cat_id,String cat_name) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -72,16 +75,24 @@ class _HomeState extends State<Home> {
   }
 
 
-  final List<String> imgList = [
-    "assets/images/c2.jpg",
-    "assets/images/c4.jpg",
-    "assets/images/c6.jpg",
-    "assets/images/c5.jpg",
-    "assets/images/c1.jpg",
-    "assets/images/c3.jpg",
-    "assets/images/c7.jpg"
-
-  ];
+  // String store = '';
+  //  Future<void> getStoreName(var s,var p) async {
+  //
+  //   final response = await http.post(Uri.parse(CONFIG.STORE_DET),
+  //       body: {
+  //         'store_id': s.toString(),
+  //         'prd_id': p.toString()
+  //       }
+  //   );
+  //   // setState(() {
+  //     store=jsonDecode(response.body);
+  //   // });
+  //   // saveS(s.toString(),store);
+  // }
+  // saveS(String id,String s) async{
+  //   SharedPreferences preferences = await SharedPreferences.getInstance();
+  //   preferences.setString(id,s);
+  // }
   @override
   initState(){
     fetchCategories().then((value){
@@ -97,6 +108,7 @@ class _HomeState extends State<Home> {
       });
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,7 +129,9 @@ class _HomeState extends State<Home> {
                 actions: <Widget>[
                   IconButton(
                     icon: Icon(Icons.shopping_cart),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/cart');
+                    },
                   )
                 ],
                 // Allows the user to reveal the app bar if they begin scrolling
@@ -153,61 +167,68 @@ class _HomeState extends State<Home> {
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children:  List.generate(_item.length, (index) {
-                                return Container(
-                                  width: 140.0,
-                                  child: Card(
-                                    clipBehavior: Clip.antiAlias,
-                                    child: InkWell(
-                                      onTap: () {
-                                        saveItem(
-                                            _item[index].prd_id,
+                            String s =_item[index].prd_image;
+                              getStoreName(_item[index].store_id,_item[index].prd_id);
+                              return Container(
+
+                                width: 140.0,
+                                child: Card(
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: () {
+                                      saveItem(
+                                        _item[index].prd_id,
+                                        _item[index].prd_name,
+                                        _item[index].prd_price,
+                                        _item[index].prd_image,
+                                        _item[index].prd_description,
+                                        _item[index].prd_quantity,
+                                        _item[index].prd_color,
+                                        _item[index].prd_size,
+                                        _item[index].prd_date,
+                                        _item[index].cat_id,
+                                        _item[index].store_id,
+                                      );
+                                      Navigator.pushNamed(
+                                          context, '/products');
+                                    },
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        SizedBox(
+                                          height: 160,
+                                          child:
+                                          Container(
+                                              child: Image.memory(
+                                                base64Decode(s),
+                                                fit: BoxFit.cover,
+                                              )
+                                          ),
+                                        ),
+                                        ListTile(
+                                          title: Text(
                                             _item[index].prd_name,
-                                            _item[index].prd_price,
-                                            _item[index].prd_image,
-                                            _item[index].prd_description,
-                                            _item[index].prd_quantity,
-                                            _item[index].prd_color,
-                                            _item[index].prd_size,
-                                            _item[index].prd_date,
-                                            _item[index].cat_id
-                                        );
-                                        Navigator.pushNamed(
-                                            context, '/products');
-                                      },
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: <Widget>[
-                                          SizedBox(
-                                            height: 160,
-                                              child:
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  image: DecorationImage(
-                                                    image: AssetImage('assets/images/'+_item[index].prd_image),
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
+                                            style: TextStyle(fontSize: 14
+                                                , color: Color(0xffDB3022)
                                             ),
                                           ),
-                                          ListTile(
-                                            title: Text(
-                                              _item[index].prd_name,
-                                              style: TextStyle(fontSize: 14
-                                                  // ,color: Color(0xff9B9B9B)
-                                              ),
-                                            ),
-                                            subtitle: Text('\$'+_item[index].prd_price,
-                                                style: TextStyle(
-                                                    color:  Color(0xffDB3022),
-                                                    fontWeight:
-                                                        FontWeight.w700)),
-                                          )
-                                        ],
-                                      ),
+                                          subtitle:
+                                          Text('\$' + _item[index].prd_price +
+                                              '\n' + storee + ' Store',
+                                              style: TextStyle(
+                                                  color: Colors
+                                                      .grey,
+                                                  fontWeight:
+                                                  FontWeight.w700)),
+
+                                        ),
+
+                                      ],
                                     ),
                                   ),
-                                );
+                                ),
+                              );
                             }
                         ),
                       ),

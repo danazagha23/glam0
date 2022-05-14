@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 import '../models/item.dart';
+import '../get_store.dart';
 import 'search.dart';
 
 class Shop extends StatefulWidget {
@@ -17,16 +18,11 @@ class Shop extends StatefulWidget {
 }
 
 
+
 class _ShopState extends State<Shop> {
-  // var cat_id;
-  // getCat() async {
-  //   SharedPreferences preferences = await SharedPreferences.getInstance();
-  //   setState(() {
-  //     cat_id = preferences.getString("catid")!;
-  //   });
-  // }
+
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
-      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid) async{
+      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("pid",prd_id);
     preferences.setString("pname",prd_name);
@@ -38,6 +34,7 @@ class _ShopState extends State<Shop> {
     preferences.setString("psize",prd_size);
     preferences.setString("pdate",prd_date);
     preferences.setString("catid",catid);
+    preferences.setString("storeid",storeid);
   }
 
   List<item> _item = List<item>.empty(growable: true);
@@ -56,6 +53,8 @@ class _ShopState extends State<Shop> {
 
     return items;
   }
+
+
   @override
   initState(){
     // getCat();
@@ -98,7 +97,9 @@ class _ShopState extends State<Shop> {
                               childAspectRatio: 0.7,
                               padding: EdgeInsets.only(top: 8, left: 6, right: 6, bottom: 12),
                               children: List.generate(_item.length, (index) {
-                                // if(_item[index].cat_id == cat_id) {
+                                String s =_item[index].prd_image;
+                                // getS(_item[index].store_id.toString());
+                                getStoreName(_item[index].store_id,_item[index].prd_id);
                                   return Container(
                                     child: Card(
                                       clipBehavior: Clip.antiAlias,
@@ -114,7 +115,8 @@ class _ShopState extends State<Shop> {
                                               _item[index].prd_color,
                                               _item[index].prd_size,
                                               _item[index].prd_date,
-                                              _item[index].cat_id
+                                              _item[index].cat_id,
+                                              _item[index].store_id
                                           );
                                           Navigator.pushNamed(
                                               context, '/products');
@@ -132,15 +134,10 @@ class _ShopState extends State<Shop> {
                                               width: double.infinity,
                                               child:
                                               Container(
-                                                decoration: BoxDecoration(
-                                                  image: DecorationImage(
-                                                    image: AssetImage(
-                                                        'assets/images/' +
-                                                            _item[index]
-                                                                .prd_image),
+                                                  child: Image.memory(
+                                                    base64Decode(s),
                                                     fit: BoxFit.cover,
-                                                  ),
-                                                ),
+                                                  )
                                               ),
 
                                             ),
@@ -174,34 +171,20 @@ class _ShopState extends State<Shop> {
                                                                 fontWeight: FontWeight
                                                                     .w700,
                                                               )),
-                                                        ),
-                                                        Padding(
-                                                          padding: const EdgeInsets
-                                                              .only(left: 6.0),
-                                                          child: Text('(\$400)',
-                                                              style: TextStyle(
-                                                                  fontWeight: FontWeight
-                                                                      .w700,
-                                                                  fontStyle: FontStyle
-                                                                      .italic,
-                                                                  color: Colors
-                                                                      .grey,
-                                                                  decoration: TextDecoration
-                                                                      .lineThrough
-                                                              )),
                                                         )
                                                       ],
                                                     ),
                                                     Row(
                                                       children: <Widget>[
-                                                        RatingStars(
-                                                          value: 3.0,
-                                                          starSize: 16,
-                                                          valueLabelColor: Colors
-                                                              .amber,
-                                                          starColor: Colors
-                                                              .amber,
-                                                        )
+                                                        Text(  storee +' Store',
+                                                            style: TextStyle(
+                                                                fontWeight: FontWeight
+                                                                    .w700,
+                                                                fontStyle: FontStyle
+                                                                    .italic,
+                                                                color: Colors
+                                                                    .grey,
+                                                            )),
                                                       ],
                                                     )
                                                   ],

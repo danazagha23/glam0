@@ -11,6 +11,7 @@ import 'package:glam0/localizations.dart';
 import 'package:glam0/product_detail.dart';
 import 'package:glam0/settings.dart';
 import 'package:glam0/shop/Clothes.dart';
+import 'package:glam0/shop/FilterShop.dart';
 import 'package:glam0/shop/shop.dart';
 import 'package:glam0/wishlist.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +51,8 @@ Future main() async {
         '/products': (BuildContext context) => Product(),
         '/Clothes': (BuildContext context) => Clothes(),
         '/checkout': (BuildContext context) => Checkout(),
-        '/profile': (BuildContext context) => profile()
+        '/profile': (BuildContext context) => profile(),
+        '/filter': (BuildContext context) => Filter()
       },
     ),
   ));

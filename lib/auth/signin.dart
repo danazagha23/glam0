@@ -86,7 +86,10 @@ class _SignInState extends State<SignIn> {
                                 // Update values
                                 _formKey.currentState!.save();
                                 // Hit Api
-                                auth.login(userCredential);
+                                setState(() {
+                                    auth.login(userCredential);
+                                });
+
                                 if(auth.a=="failed" || auth.a=="not exist") {
                                   Navigator.pushNamed(context, '/auth');
                                 }

@@ -30,7 +30,7 @@ class _CartListState extends State<CartList> {
 
     Future getPref() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    setState(() {
+    setState((){
       cust_id = preferences.getString("cust_id")??'';
     });
   }
@@ -60,7 +60,8 @@ class _CartListState extends State<CartList> {
       var itemsJson = json.decode(response.body);
       for(var dataJson in itemsJson){
         items.add(cart.fromJson(dataJson));
-        i = i + int.parse(cart.fromJson(dataJson).prd_price);
+        i = i + int.parse(cart.fromJson(dataJson).prd_price)*int.parse(cart.fromJson(dataJson).quantity);
+        quantity = int.parse(cart.fromJson(dataJson).quantity);
       }
 
     }
@@ -71,12 +72,14 @@ class _CartListState extends State<CartList> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("total", total);
   }
+
   List<TextEditingController> _quantityController = new List<TextEditingController>.empty(growable: true);
   int quantity=1;
 
   @override
   void initState() {
     // TODO: implement initState
+    super.initState();
     getPref();
     fetchItems().then((value){
       setState(() {
@@ -84,11 +87,10 @@ class _CartListState extends State<CartList> {
         products.addAll(value);
       });
     });
-    super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
+    if(products.length==0)i=0;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xffDB3022),
@@ -108,6 +110,7 @@ class _CartListState extends State<CartList> {
 
                   itemBuilder: (context, index) {
                     final item = products[index];
+                    String s = item.prd_image;
                     _quantityController.add(new TextEditingController());
                     return Dismissible(
                       // Each Dismissible must contain a Key. Keys allow Flutter to
@@ -127,7 +130,9 @@ class _CartListState extends State<CartList> {
                         }
                         // Remove the item from the data source.
                         setState(() {
+                          i = i - int.parse(item.prd_price)*int.parse(item.quantity);
                           deleteItem(item.product_id);
+                          saveTotal(i.toString());
                           products.removeAt(index);
                         });
 
@@ -191,13 +196,11 @@ class _CartListState extends State<CartList> {
                                         color: Colors.blue
                                     ),
                                     child:
-                                    CachedNetworkImage(
-                                      fit: BoxFit.cover,
-                                      imageUrl: 'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
-                                      placeholder: (context, url) => Center(
-                                          child: CircularProgressIndicator()
-                                      ),
-                                      errorWidget: (context, url, error) => new Icon(Icons.error),
+                                    Container(
+                                        child: Image.memory(
+                                          base64Decode(s),
+                                          fit: BoxFit.cover,
+                                        )
                                     ),
                                   ),
                                 ),
@@ -247,14 +250,18 @@ class _CartListState extends State<CartList> {
                                                                       'quantity': quantity.toString()
                                                                     }
                                                                 );
+                                                                setState(() {
                                                                 i = i - int.parse(item.prd_price);
+                                                                saveTotal(i.toString());
+                                                                });
                                                               }else if(quantity == 0){
                                                                 setState(() {
-                                                                  i = i - int.parse(item.prd_price);
-                                                              deleteItem(item.product_id);
-                                                              products.removeAt(index);
-                                                            });
-                                                                }
+                                                                  i = i - (int.parse(item.prd_price)*int.parse(item.quantity));
+                                                                  deleteItem(item.product_id);
+                                                                  products.removeAt(index);
+                                                                  saveTotal(i.toString());
+                                                                });
+                                                              }
                                                           }
                                                       ),
                                                     )
@@ -297,6 +304,7 @@ class _CartListState extends State<CartList> {
                                                         );
                                                         setState(() {
                                                           i = i + int.parse(item.prd_price);
+                                                          saveTotal(i.toString());
                                                         });
 
                                                       }
@@ -364,6 +372,7 @@ class _CartListState extends State<CartList> {
     setState(() {
       quantity++;
       _quantityController[index].text = '$quantity';
+
     });
   }
 

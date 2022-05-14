@@ -135,7 +135,7 @@ class _profileState extends State<profile> {
                 onChanged: (name) {},
               ),
               const Text(
-                'Address',
+                'Phone',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 24),
@@ -149,7 +149,7 @@ class _profileState extends State<profile> {
                 onChanged: (name) {},
               ),
                Text(
-                'Phone',
+                'Address',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 24),

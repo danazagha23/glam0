@@ -8,28 +8,34 @@ import 'package:flutter_rating_stars/flutter_rating_stars.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
-import '../get_store.dart';
 import '../models/item.dart';
 import 'search.dart';
 
-class Clothes extends StatefulWidget {
+class Filter extends StatefulWidget {
   @override
-  _ClothesState createState() => _ClothesState();
+  _FilterState createState() => _FilterState();
 }
 
 
-class _ClothesState extends State<Clothes> {
-  var cat_id;
-  var cat_name;
-  getCat() async {
+class _FilterState extends State<Filter> {
+  var cat;
+  var catid;
+  var fprice;
+  var sprice;
+  getSearch() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
-      cat_id = preferences.getString("catid")!;
-      cat_name = preferences.getString("catname")!;
+      cat = preferences.getString("search_cat")!;
+      fprice = preferences.getString("search_fprice")!;
+      sprice = preferences.getString("search_sprice")!;
+      if(cat=='Clothes')catid=1;
+      if(cat=='Shoes')catid=2;
+      if(cat=='Accessories')catid=3;
     });
+
   }
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
-      String prd_description,String prd_quantity,String prd_date,String catid,String storeid) async{
+      String prd_description,String prd_quantity,String prd_date,String catid) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("pid",prd_id);
     preferences.setString("pname",prd_name);
@@ -38,7 +44,6 @@ class _ClothesState extends State<Clothes> {
     preferences.setString("pdescription",prd_description);
     preferences.setString("pquantity",prd_quantity);
     preferences.setString("catid",catid);
-    preferences.setString("pstoreid",storeid);
   }
 
   List<item> _item = List<item>.empty(growable: true);
@@ -46,13 +51,19 @@ class _ClothesState extends State<Clothes> {
   Future<List<item>> fetchItems() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
-      cat_id = preferences.getString("catid")!;
-      cat_name = preferences.getString("catname")!;
+      cat = preferences.getString("search_cat")!;
+      fprice = preferences.getString("search_fprice")!;
+      sprice = preferences.getString("search_sprice")!;
+      if(cat=='Clothes')catid=1;
+      if(cat=='Shoes')catid=2;
+      if(cat=='Accessories')catid=3;
     });
-    var response = await http.post(Uri.parse(CONFIG.SELECTC),
-          body: {
-            'cat_id': cat_id
-          });
+    var response = await http.post(Uri.parse(CONFIG.SEARCH),
+        body: {
+          'cat_id': catid.toString(),
+          'prd_fprice': fprice.toString(),
+          'prd_sprice': sprice.toString()
+        });
 
     var items = List<item>.empty(growable: true);
 
@@ -68,7 +79,7 @@ class _ClothesState extends State<Clothes> {
   }
   @override
   initState(){
-    getCat();
+    // getSearch();
     fetchItems().then((value){
       setState(() {
         _item = _item.toList();
@@ -76,7 +87,6 @@ class _ClothesState extends State<Clothes> {
       });
     });
   }
-
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
@@ -85,16 +95,7 @@ class _ClothesState extends State<Clothes> {
       child: Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.search, color: Colors.white),
-              onPressed: () {
-                scaffoldKey.currentState!
-                    .showBottomSheet((context) => ShopSearch());
-              },
-            )
-          ],
-          title: Text(cat_name),
+          title: Text(cat.toString()),
           backgroundColor: Color(0xffDB3022),
         ),
         body: Builder(
@@ -110,7 +111,6 @@ class _ClothesState extends State<Clothes> {
                     padding: EdgeInsets.only(top: 8, left: 6, right: 6, bottom: 12),
                     children: List.generate(_item.length, (index) {
                       String s =_item[index].prd_image;
-                      getStoreName(_item[index].store_id,_item[index].prd_id);
                       return Container(
                         child: Card(
                           clipBehavior: Clip.antiAlias,
@@ -124,8 +124,7 @@ class _ClothesState extends State<Clothes> {
                                   _item[index].prd_description,
                                   _item[index].prd_quantity,
                                   _item[index].prd_date,
-                                  _item[index].cat_id,
-                                  _item[index].store_id
+                                  _item[index].cat_id
                               );
                               Navigator.pushNamed(
                                   context, '/products');
@@ -176,24 +175,40 @@ class _ClothesState extends State<Clothes> {
                                                   _item[index]
                                                       .prd_price,
                                                   style: TextStyle(
-                                                    color: Color(0xffDB3022),
+                                                    color: Theme
+                                                        .of(context)
+                                                        .accentColor,
                                                     fontWeight: FontWeight
                                                         .w700,
+                                                  )),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets
+                                                  .only(left: 6.0),
+                                              child: Text('(\$400)',
+                                                  style: TextStyle(
+                                                      fontWeight: FontWeight
+                                                          .w700,
+                                                      fontStyle: FontStyle
+                                                          .italic,
+                                                      color: Colors
+                                                          .grey,
+                                                      decoration: TextDecoration
+                                                          .lineThrough
                                                   )),
                                             )
                                           ],
                                         ),
                                         Row(
                                           children: <Widget>[
-                                            Text(  storee +' Store',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight
-                                                      .w700,
-                                                  fontStyle: FontStyle
-                                                      .italic,
-                                                  color: Colors
-                                                      .grey,
-                                                )),
+                                            RatingStars(
+                                              value: 3.0,
+                                              starSize: 16,
+                                              valueLabelColor: Colors
+                                                  .amber,
+                                              starColor: Colors
+                                                  .amber,
+                                            )
                                           ],
                                         )
                                       ],
