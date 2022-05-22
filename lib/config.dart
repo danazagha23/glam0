@@ -1,41 +1,27 @@
 class CONFIG {
-  //192.168.1.181   127.0.0.1
-  // static const String REGISTER =   "http://192.168.1.210/glam/register_client.php";
-  // static const String LOGIN =   "http://192.168.1.210/glam/login_client.php";
-  // static const String CAT =   "http://192.168.1.210/glam/categories.php";
-  // static const String ITEM =   "http://192.168.1.210/glam/products.php";
-  // static const String SELECTC =   "http://192.168.1.210/glam/SelecteItem.php";
-  // static const String WISH =   "http://192.168.1.210/glam/wishlist.php";
-  // static const String CART =   "http://192.168.1.210/glam/cart.php";
-  // static const String CARTPRO =   "http://192.168.1.210/glam/cart_list.php";
-  // static const String CARTDEL =   "http://192.168.1.210/glam/cart_delete.php";
-  // static const String WISHDEL =   "http://192.168.1.210/glam/wish_delete.php";
-  // static const String WISHPRO =   "http://192.168.1.210/glam/wishlist_list.php";
-  // static const String ORDER =   "http://192.168.1.210/glam/order.php";
-  // static const String ORDERDET =   "http://192.168.1.210/glam/order_detail.php";
-  // static const String QUAN =   "http://192.168.1.210/glam/quantity.php";
-  // static const String PROFILE =   "http://192.168.1.210/glam/profile.php";
-  // static const String WISHCHECK =   "http://192.168.1.210/glam/check_wish.php";
-  // static const String ROOT ="http://192.168.1.210/glam/image_action.php";
-  // static const String SEARCH ="http://192.168.1.210/glam/search.php";
-  static const String REGISTER =   "http://192.168.0.100/glam/register_client.php";
-  static const String LOGIN =   "http://192.168.0.100/glam/login_client.php";
-  static const String CAT =   "http://192.168.0.100/glam/categories.php";
-  static const String STORE =   "http://192.168.0.100/glam/stores.php";
-  static const String STORE_DET =   "http://192.168.0.100/glam/prd_store.php";
-  static const String ITEM =   "http://192.168.0.100/glam/products.php";
-  static const String SELECTC =   "http://192.168.0.100/glam/SelecteItem.php";
-  static const String WISH =   "http://192.168.0.100/glam/wishlist.php";
-  static const String CART =   "http://192.168.0.100/glam/cart.php";
-  static const String CARTPRO =   "http://192.168.0.100/glam/cart_list.php";
-  static const String CARTDEL =   "http://192.168.0.100/glam/cart_delete.php";
-  static const String WISHDEL =   "http://192.168.0.100/glam/wish_delete.php";
-  static const String WISHPRO =   "http://192.168.0.100/glam/wishlist_list.php";
-  static const String ORDER =   "http://192.168.0.100/glam/order.php";
-  static const String ORDERDET =   "http://192.168.0.100/glam/order_detail.php";
-  static const String QUAN =   "http://192.168.0.100/glam/quantity.php";
-  static const String PROFILE =   "http://192.168.0.100/glam/profile.php";
-  static const String WISHCHECK =   "http://192.168.0.100/glam/check_wish.php";
-  static const String ROOT ="http://192.168.0.100/glam/image_action.php";
-  static const String SEARCH ="http://192.168.0.100/glam/search.php";
+  //192.168.1.181   127.0.0.1   192.168.1.104
+  static const String s = "http://192.168.0.108/glam/";
+
+  static const String REGISTER =   s + "register_client.php";
+  static const String LOGIN =   s + "login_client.php";
+  static const String CAT =   s + "categories.php";
+  static const String STORE =   s + "stores.php";
+  static const String STORE_DET =   s + "prd_store.php";
+  static const String ITEM =   s + "products.php";
+  static const String SELECTC =   s + "SelecteItem.php";
+  static const String WISH =   s + "wishlist.php";
+  static const String CART =   s + "cart.php";
+  static const String CARTPRO =   s + "cart_list.php";
+  static const String CARTDEL =   s + "cart_delete.php";
+  static const String WISHDEL =   s + "wish_delete.php";
+  static const String WISHPRO =   s + "wishlist_list.php";
+  static const String ORDER =   s + "order.php";
+  static const String ORDERDET =   s + "order_detail.php";
+  static const String QUAN =   s + "quantity.php";
+  static const String PROFILE =   s + "profile.php";
+  static const String WISHCHECK =   s + "check_wish.php";
+  static const String ROOT =s + "image_action.php";
+  static const String SEARCH =s + "search.php";
+  static const String SELST =s + "SelectStoreItems.php";
+  static const String ITEMDEL =s + "deleteItems.php";
 }

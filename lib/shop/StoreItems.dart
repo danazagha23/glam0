@@ -12,20 +12,20 @@ import '../get_store.dart';
 import '../models/item.dart';
 import 'search.dart';
 
-class Clothes extends StatefulWidget {
+class StoreItems extends StatefulWidget {
   @override
-  _ClothesState createState() => _ClothesState();
+  _StoreItemsState createState() => _StoreItemsState();
 }
 
 
-class _ClothesState extends State<Clothes> {
-  var cat_id;
-  var cat_name;
-  getCat() async {
+class _StoreItemsState extends State<StoreItems> {
+  var store_id;
+  var store_name;
+  getStore() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
-      cat_id = preferences.getString("catid")!;
-      cat_name = preferences.getString("catname")!;
+      store_id = preferences.getString("storeid")!;
+      store_name = preferences.getString("storename")!;
     });
   }
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
@@ -47,12 +47,12 @@ class _ClothesState extends State<Clothes> {
   Future<List<item>> fetchItems() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
-      cat_id = preferences.getString("catid")!;
-      cat_name = preferences.getString("catname")!;
+      store_id = preferences.getString("storeid")!;
+      store_name = preferences.getString("storename")!;
     });
-    var response = await http.post(Uri.parse(CONFIG.SELECTC),
+    var response = await http.post(Uri.parse(CONFIG.SELST),
           body: {
-            'cat_id': cat_id
+            'store_id': store_id
           });
 
     var items = List<item>.empty(growable: true);
@@ -69,7 +69,7 @@ class _ClothesState extends State<Clothes> {
   }
   @override
   initState(){
-    getCat();
+    getStore();
     fetchItems().then((value){
       setState(() {
         _item = _item.toList();
@@ -95,7 +95,7 @@ class _ClothesState extends State<Clothes> {
               },
             )
           ],
-          title: Text(cat_name),
+          title: Text(store_name),
           backgroundColor: Color(0xffDB3022),
         ),
         body: SingleChildScrollView(
@@ -128,7 +128,7 @@ class _ClothesState extends State<Clothes> {
                                   _item[index].prd_date,
                                   _item[index].cat_id,
                                   _item[index].store_id,
-                                  _item[index].store_name
+                                  _item[index].store_name,
                               );
                               Navigator.pushNamed(
                                   context, '/products');

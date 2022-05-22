@@ -22,7 +22,7 @@ class Shop extends StatefulWidget {
 class _ShopState extends State<Shop> {
 
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
-      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid) async{
+      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid,String storename) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("pid",prd_id);
     preferences.setString("pname",prd_name);
@@ -33,8 +33,9 @@ class _ShopState extends State<Shop> {
     preferences.setString("pcolor",prd_color);
     preferences.setString("psize",prd_size);
     preferences.setString("pdate",prd_date);
-    preferences.setString("catid",catid);
-    preferences.setString("storeid",storeid);
+    preferences.setString("pcatid",catid);
+    preferences.setString("pstoreid",storeid);
+    preferences.setString("pstorename",storename);
   }
 
   List<item> _item = List<item>.empty(growable: true);
@@ -85,20 +86,20 @@ class _ShopState extends State<Shop> {
           title: Text('Shop'),
           backgroundColor: Color(0xffDB3022),
         ),
-        body: Builder(
-          builder: (BuildContext contex) {
-            return Column(
+        body: SingleChildScrollView(
+              physics: ClampingScrollPhysics(),
+                child: Column(
                   children: <Widget>[
                           Container(
 
                             child: GridView.count(
+                              physics: ScrollPhysics(),
                               shrinkWrap: true,
                               crossAxisCount: 2,
                               childAspectRatio: 0.7,
                               padding: EdgeInsets.only(top: 8, left: 6, right: 6, bottom: 12),
                               children: List.generate(_item.length, (index) {
                                 String s =_item[index].prd_image;
-                                // getS(_item[index].store_id.toString());
                                 getStoreName(_item[index].store_id,_item[index].prd_id);
                                   return Container(
                                     child: Card(
@@ -116,7 +117,8 @@ class _ShopState extends State<Shop> {
                                               _item[index].prd_size,
                                               _item[index].prd_date,
                                               _item[index].cat_id,
-                                              _item[index].store_id
+                                              _item[index].store_id,
+                                              _item[index].store_name,
                                           );
                                           Navigator.pushNamed(
                                               context, '/products');
@@ -176,7 +178,7 @@ class _ShopState extends State<Shop> {
                                                     ),
                                                     Row(
                                                       children: <Widget>[
-                                                        Text(  storee +' Store',
+                                                        Text(  _item[index].store_name +' Store',
                                                             style: TextStyle(
                                                                 fontWeight: FontWeight
                                                                     .w700,
@@ -204,9 +206,8 @@ class _ShopState extends State<Shop> {
                     //   ),
                     // ),
                   ],
-                );
-          },
-        ),
+                ),
+            ),
 
       ),
     );

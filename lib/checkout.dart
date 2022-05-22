@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -39,6 +40,13 @@ class _CheckoutState extends State<Checkout> {
     await http.post(Uri.parse(CONFIG.CARTDEL),
         body: {
           'pro_id': id
+        }
+    );
+  }
+  Future deleteItems() async {
+    await http.post(Uri.parse(CONFIG.ITEMDEL),
+        body: {
+          'cust_id': cust_id
         }
     );
   }
@@ -386,8 +394,15 @@ class _CheckoutState extends State<Checkout> {
                 child: RaisedButton(
                   onPressed: () {
                     fetchOrders();
+                    deleteItems();
+                    Fluttertoast.showToast(
+                        msg: 'Order Placed!',
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIosWeb: 1,
+                        fontSize: 16.0);
                     // fetchOrders2();
-                    Navigator.pushNamed(context, '/checkout');},
+                    Navigator.pushNamed(context, '/cart');},
                   child: Text(
                     "Place your order",
                     style: TextStyle(color: Colors.white, fontSize: 16),

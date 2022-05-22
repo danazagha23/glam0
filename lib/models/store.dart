@@ -15,8 +15,8 @@ class store {
       store_name: json['store_name'],
       store_description: json['store_description'],
       store_image: json['store_image'],
-      store_cat: json['store_cat'],
-      store_number: json['store_number']
+      store_cat: json['cat'],
+      store_number: json['phone_number']
     );
   }
 

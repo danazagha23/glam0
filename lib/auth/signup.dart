@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:glam0/models/user.dart';
 import 'package:glam0/blocks/auth_block.dart';
 import 'package:provider/provider.dart';
-
+import 'package:glam0/validator.dart';
 import '../home/home.dart';
 
 class SignUp extends StatefulWidget {
@@ -29,8 +29,12 @@ class _SignUpState extends State<SignUp> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: TextFormField(
                       validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please Enter your name';
+                        String pattern = r'(^[a-zA-Z ]*$)';
+                        RegExp regExp = new RegExp(pattern);
+                        if (value!.length == 0) {
+                          return "Name is Required";
+                        } else if (!regExp.hasMatch(value!)) {
+                          return "Name must be a-z and A-Z";
                         }
                         return null;
                       },
@@ -49,10 +53,16 @@ class _SignUpState extends State<SignUp> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: TextFormField(
                       validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please Enter Email Address';
+                        String pattern =
+                            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+                        RegExp regExp = new RegExp(pattern);
+                        if (value!.length == 0) {
+                          return "Email is Required";
+                        } else if (!regExp.hasMatch(value!)) {
+                          return "Invalid Email";
+                        } else {
+                          return null;
                         }
-                        return null;
                       },
                       onSaved: (value) {
                         setState(() {
@@ -69,8 +79,10 @@ class _SignUpState extends State<SignUp> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: TextFormField(
                         validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please Enter Password';
+                          if(value!.length==0){
+                            return "Password can't be empty";
+                          } else if (value!.length < 8){
+                            return "Password must be longer than 8 characters";
                           }
                           return null;
                         },
@@ -130,8 +142,14 @@ class _SignUpState extends State<SignUp> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: TextFormField(
                       validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please Enter your Phone number';
+                        String pattern = r'(^[0-9]*$)';
+                        RegExp regExp = new RegExp(pattern);
+                        if (value!.length == 0) {
+                          return "Mobile is Required";
+                        } else if (value!.length != 10) {
+                          return "Mobile number must 10 digits";
+                        } else if (!regExp.hasMatch(value!)) {
+                          return "Mobile Number must be digits";
                         }
                         return null;
                       },
@@ -161,13 +179,13 @@ class _SignUpState extends State<SignUp> {
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ) : Text('Sign Up'),
                           onPressed: () {
-                            // if (_formKey.currentState!.validate() && !auth.loading) {
+                            if (_formKey.currentState!.validate() && !auth.loading) {
                               _formKey.currentState!.save();
                               // If the form is valid, display a snackbar. In the real world,
                               // you'd often call a server or save the information in a database.
                               auth.register(user);
                               Navigator.pushNamed(context, '/settings');
-                            // }
+                            }
                           },
                         );
                       }),

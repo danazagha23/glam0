@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 import '../models/cat.dart';
+import '../models/store.dart';
 class ShopSearch extends StatefulWidget {
   @override
   _ShopSearchState createState() => _ShopSearchState();
@@ -13,39 +14,53 @@ class ShopSearch extends StatefulWidget {
 
 
 class _ShopSearchState extends State<ShopSearch> {
-  saveSearch(String cat,String fprice,String sprice) async{
+
+
+
+  saveSearch(String cat,String store,String fprice,String sprice) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("search_cat",cat);
+    preferences.setString("search_store",store);
     preferences.setString("search_fprice",fprice);
     preferences.setString("search_sprice",sprice);
   }
-  ////GET ALL STORES
+
+  // ////GET ALL STORES
   // List<store> _store = List<store>.empty(growable: true);
+  // List<String> _stores = List<String>.empty(growable: true);
   //
-  // Future<List<store>> fetchStores() async {
-  //   var response = await http.get(Uri.parse(CONFIG.CAT));
-  //   var stores = List<store>.empty(growable: true);
+  // Future fetchStores() async {
+  //   var response = await http.get(Uri.parse(CONFIG.STORE));
   //
-  //   if(response.statusCode == 200) {
+  //   if (response.statusCode == 200) {
   //     var catsJson = json.decode(response.body);
-  //     for(var dataJson in catsJson){
-  //       stores.add(store.fromJson(dataJson));
+  //     for (var dataJson in catsJson) {
+  //       _stores.add(dataJson["store_name"].toString());
+  //       // print(dataJson["store_name"].toString());
   //     }
-  //
   //   }
   //
-  //   return stores;
   // }
-
-  String cat = '';
-  var fprice;
-  var sprice;
+  //
+  // @override
+  // initState(){
+  //   fetchStores();
+  //   // print(_stores.first);
+  //   // dropdownValue1 = _stores.first.toString();
+  // }
+  String cat = 'Clothes';
+  String store = 'Arena';
+  var fprice=0.0;
+  var sprice=500.0;
 
 
   String dropdownValue = 'Clothes';
   RangeValues _values = RangeValues(0.0, 500.0);
 
+  String dropdownValue1 = 'Arena' ;
+
   Widget build(BuildContext context) {
+
     return Container(
       height: 425,
       width: double.infinity,
@@ -69,6 +84,37 @@ class _ShopSearchState extends State<ShopSearch> {
                     decoration: BoxDecoration(
                       color: Colors.grey[400],
                       borderRadius: BorderRadius.all(Radius.circular(20)),
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: new EdgeInsetsDirectional.only(bottom: 15.0),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: dropdownValue1,
+                      icon: Icon(Icons.keyboard_arrow_down),
+                      style: TextStyle(
+                          color: Colors.black
+                      ),
+                      underline: Container(
+                        height: 1,
+                        color: Colors.grey[300],
+                      ),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          dropdownValue1 = newValue!;
+                          store = dropdownValue1;
+                        });
+                      },
+                      items: <String>['Arena', 'julia', 'Laki', 'One Way']
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
                     ),
                   ),
                 ),
@@ -181,7 +227,7 @@ class _ShopSearchState extends State<ShopSearch> {
                         height: 40.0,
                         child: ElevatedButton(
                           onPressed: () {
-                            saveSearch(cat,fprice.toString(),sprice.toString());
+                            saveSearch(cat,store,fprice.toString(),sprice.toString());
                             Navigator.pushNamed(context, '/filter');
                           },
                           child: Text(

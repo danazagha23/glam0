@@ -6,13 +6,21 @@ import 'package:glam0/localizations.dart';
 import 'package:http/http.dart' as http;
 
 import '../config.dart';
+import '../main.dart';
 import '../models/cat.dart';
 import '../models/image.dart';
 import '../models/item.dart';
 import '../get_store.dart';
+import '../models/store.dart';
 import 'drawer.dart';
 import 'slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -20,7 +28,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
-      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid) async{
+      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid,String storename) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("pid",prd_id);
     preferences.setString("pname",prd_name);
@@ -33,11 +41,17 @@ class _HomeState extends State<Home> {
     preferences.setString("pdate",prd_date);
     preferences.setString("pcatid",catid);
     preferences.setString("pstoreid",storeid);
+    preferences.setString("pstorename",storename);
   }
   saveCat(String cat_id,String cat_name) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("catid",cat_id);
     preferences.setString("catname",cat_name);
+  }
+  saveStore(String store_id,String store_name) async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("storeid",store_id);
+    preferences.setString("storename",store_name);
   }
 
 
@@ -57,6 +71,23 @@ class _HomeState extends State<Home> {
 
     return cats;
   }
+  ////GET ALL STORES
+  List<store> _store = List<store>.empty(growable: true);
+
+  Future<List<store>> fetchStores() async {
+    var response = await http.get(Uri.parse(CONFIG.STORE));
+    var stores = List<store>.empty(growable: true);
+
+    if(response.statusCode == 200) {
+      var catsJson = json.decode(response.body);
+      for(var dataJson in catsJson){
+        stores.add(store.fromJson(dataJson));
+      }
+
+    }
+
+    return stores;
+  }
   List<item> _item = List<item>.empty(growable: true);
 
   Future<List<item>> fetchItems() async {
@@ -75,26 +106,9 @@ class _HomeState extends State<Home> {
   }
 
 
-  // String store = '';
-  //  Future<void> getStoreName(var s,var p) async {
-  //
-  //   final response = await http.post(Uri.parse(CONFIG.STORE_DET),
-  //       body: {
-  //         'store_id': s.toString(),
-  //         'prd_id': p.toString()
-  //       }
-  //   );
-  //   // setState(() {
-  //     store=jsonDecode(response.body);
-  //   // });
-  //   // saveS(s.toString(),store);
-  // }
-  // saveS(String id,String s) async{
-  //   SharedPreferences preferences = await SharedPreferences.getInstance();
-  //   preferences.setString(id,s);
-  // }
   @override
-  initState(){
+  void initState() {
+    super.initState();
     fetchCategories().then((value){
       setState(() {
         _cat = _cat.toList();
@@ -107,7 +121,76 @@ class _HomeState extends State<Home> {
         });
       });
     });
+    fetchStores().then((value){
+      setState(() {
+        _store = _store.toList();
+        _store.addAll(value);
+      });
+    });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        flutterLocalNotificationsPlugin.show(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(
+                channel.id,
+                channel.name,
+                color: Colors.blue,
+                playSound: true,
+                icon: '@mipmap/ic_launcher',
+              ),
+            ));
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('A new onMessageOpenedApp event was published!');
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        showDialog(
+            context: context,
+            builder: (_) {
+              return AlertDialog(
+                title: Text(notification.title!),
+                content: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(notification.body!)],
+                  ),
+                ),
+              );
+            });
+      }
+    });
   }
+  int _counter = 0;
+  void showNotification() {
+    setState(() {
+      _counter++;
+    });
+    flutterLocalNotificationsPlugin.show(
+        0,
+        "Delivery",
+        "Your order in the way stay awake!",
+        NotificationDetails(
+            android: AndroidNotificationDetails(channel.id, channel.name,
+                importance: Importance.high,
+                color: Colors.blue,
+                playSound: true,
+                icon: '@mipmap/ic_launcher')));
+
+
+  }
+  // @override
+  // initState(){
+  //
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +213,9 @@ class _HomeState extends State<Home> {
                   IconButton(
                     icon: Icon(Icons.shopping_cart),
                     onPressed: () {
-                      Navigator.pushNamed(context, '/cart');
+
+                      showNotification();
+                      //Navigator.pushNamed(context, '/cart');
                     },
                   )
                 ],
@@ -168,10 +253,8 @@ class _HomeState extends State<Home> {
                           scrollDirection: Axis.horizontal,
                           children:  List.generate(_item.length, (index) {
                             String s =_item[index].prd_image;
-                              getStoreName(_item[index].store_id,_item[index].prd_id);
                               return Container(
-
-                                width: 140.0,
+                                width: 160,
                                 child: Card(
                                   clipBehavior: Clip.antiAlias,
                                   child: InkWell(
@@ -188,6 +271,7 @@ class _HomeState extends State<Home> {
                                         _item[index].prd_date,
                                         _item[index].cat_id,
                                         _item[index].store_id,
+                                        _item[index].store_name
                                       );
                                       Navigator.pushNamed(
                                           context, '/products');
@@ -198,8 +282,10 @@ class _HomeState extends State<Home> {
                                       children: <Widget>[
                                         SizedBox(
                                           height: 160,
+                                          width: 150,
                                           child:
                                           Container(
+                                            padding: EdgeInsets.only(left: 10, right: 10),
                                               child: Image.memory(
                                                 base64Decode(s),
                                                 fit: BoxFit.cover,
@@ -215,7 +301,7 @@ class _HomeState extends State<Home> {
                                           ),
                                           subtitle:
                                           Text('\$' + _item[index].prd_price +
-                                              '\n' + storee + ' Store',
+                                              '\n' + _item[index].store_name + ' Store',
                                               style: TextStyle(
                                                   color: Colors
                                                       .grey,
@@ -277,7 +363,7 @@ class _HomeState extends State<Home> {
                           physics: NeverScrollableScrollPhysics(),
                           crossAxisCount: 2,
                           padding: EdgeInsets.only(
-                              top: 8, left: 6, right: 6, bottom: 12),
+                              top: 8, left: 6, right: 6, bottom: 20),
                           children: List.generate(_cat.length, (index) {
                             return Container(
                               child: Card(
@@ -333,7 +419,90 @@ class _HomeState extends State<Home> {
                             image: AssetImage('assets/images/banner-2.png'),
                           ),
                         ),
-                      )
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.only(
+                                top: 8.0, left: 8.0, right: 8.0),
+                            child: Text('Stores',
+                                style: TextStyle(
+                                    color:  Colors.black,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                                right: 8.0, top: 8.0, left: 8.0),
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  primary:  Color(0xffDB3022),
+                                ),
+                                child: Text('View All',
+                                    style: TextStyle(
+                                        color: Colors.white)),
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/stores');
+                                }),
+                          )
+                        ],
+                      ),
+
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: 8.0),
+                        height: 160,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children:  List.generate(_store.length, (index) {
+                            return Container(
+                              width: 140,
+                              child: Card(
+                                clipBehavior: Clip.antiAlias,
+                                child: InkWell(
+                                  onTap: () {
+                                    saveStore(_store[index].store_id,_store[index].store_name);
+                                    Navigator.pushNamed(
+                                        context, '/storeItems');
+                                    print('Card tapped.');
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      SizedBox(
+                                        height:
+                                        (MediaQuery.of(context).size.width /
+                                            2) -
+                                            110,
+                                        width: double.infinity,
+                                        child:
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                              image: AssetImage('assets/images/'+_store[index].store_image),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      ListTile(
+                                          title: Text(
+                                            _store[index].store_name,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 16
+                                            ),
+                                          ))
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+
                     ],
                   ),
                   // Builds 1000 ListTiles

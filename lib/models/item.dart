@@ -10,9 +10,10 @@ class item {
   final String prd_date;
   final String cat_id;
   final String store_id;
+  final String store_name;
 
   item({required this.prd_id,required this.prd_name,required this.prd_price,required this.prd_image,
-    required this.prd_description,required this.prd_quantity,required this.prd_color,required this.prd_size,required this.prd_date,required this.cat_id,required this.store_id});
+    required this.prd_description,required this.prd_quantity,required this.prd_color,required this.prd_size,required this.prd_date,required this.cat_id,required this.store_id,required this.store_name});
 
   factory item.fromJson(Map<String, dynamic> json) {
     return item(
@@ -26,7 +27,8 @@ class item {
         prd_size: json['sizes'],
       prd_date: json['prd_date'],
       cat_id: json['prd_cat_id'],
-      store_id: json['prd_store_id']
+      store_id: json['prd_store_id'],
+      store_name: json['store_name']
     );
   }
 

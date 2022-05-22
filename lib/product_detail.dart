@@ -79,6 +79,7 @@ class _ProductState extends State<Product> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     setState(() {
       cust_id = preferences.getString("cust_id")??'';
+      isSignin = preferences.getBool("isSignin")!;
     });
     getLike();
     String si =storeid;
@@ -107,26 +108,28 @@ class _ProductState extends State<Product> {
   }
 
   void onLikeButtonTapped() async{
-      if(_isFavorited) {
+    if( isSignin ) {
+      if (_isFavorited) {
         setState(() {
-          _isFavorited=false;
+          _isFavorited = false;
         });
         final response = await http.post(Uri.parse(CONFIG.WISHDEL),
             body: {
-              'pro_id':prd_id
+              'pro_id': prd_id
             }
         );
-      }else{
+      } else {
         setState(() {
-          _isFavorited=true;
+          _isFavorited = true;
         });
         final response = await http.post(Uri.parse(CONFIG.WISH),
             body: {
-              'prd_id':prd_id,
-              'cust_id':cust_id
+              'prd_id': prd_id,
+              'cust_id': cust_id
             }
         );
       }
+    }else if(!isSignin) Navigator.pushNamed(context, '/auth');
   }
   int selectedColor = -1;
   int selectedSize = -1;
@@ -165,10 +168,16 @@ class _ProductState extends State<Product> {
         return Colors.green;
       case "white":
         return Colors.white;
+        case "pink":
+        return Colors.pink;
+        case "black":
+        return Colors.black;
       default:
         return Colors.transparent;
     }
   }
+  bool isSignin = false;
+
   @override
   Widget build(BuildContext context) {
     listColor = prd_color.split(",");
@@ -355,13 +364,23 @@ class _ProductState extends State<Product> {
                                 ),
                               ),
                               onPressed: () {
-                                cartTapped();
-                                Fluttertoast.showToast(
-                                    msg: 'Added to cart',
-                                    toastLength: Toast.LENGTH_SHORT,
-                                    gravity: ToastGravity.CENTER,
-                                    timeInSecForIosWeb: 1,
-                                    fontSize: 16.0);
+                                if(isSignin && selectedSize>0 && selectedColor>0) {
+                                  cartTapped();
+                                  Fluttertoast.showToast(
+                                      msg: 'Added to cart',
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.CENTER,
+                                      timeInSecForIosWeb: 1,
+                                      fontSize: 16.0);
+                                }
+                                else if(!isSignin) Navigator.pushNamed(context, '/auth');
+                                else if(selectedSize<1 && selectedColor<1)
+                                  Fluttertoast.showToast(
+                                      msg: 'Please select color and size',
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.CENTER,
+                                      timeInSecForIosWeb: 1,
+                                      fontSize: 16.0);
                               },
                               child: Text(
                                 "Add to cart".toUpperCase(),
