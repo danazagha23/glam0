@@ -108,7 +108,7 @@ class _ShopSearchState extends State<ShopSearch> {
                           store = dropdownValue1;
                         });
                       },
-                      items: <String>['Arena', 'julia', 'Laki', 'One Way']
+                      items: <String>['Arena', 'Julia', 'Laki', 'One Way']
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,

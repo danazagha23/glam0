@@ -1,6 +1,6 @@
 class CONFIG {
   //192.168.1.181   127.0.0.1   192.168.1.104
-  static const String s = "http://192.168.1.104/glam/";
+  static const String s = "http://192.168.0.108/glam/";
 
   static const String REGISTER =   s + "register_client.php";
   static const String LOGIN =   s + "login_client.php";
@@ -24,4 +24,5 @@ class CONFIG {
   static const String SEARCH =s + "search.php";
   static const String SELST =s + "SelectStoreItems.php";
   static const String ITEMDEL =s + "deleteItems.php";
+  static const String BANNER =  s + "shop_owner.php";
 }

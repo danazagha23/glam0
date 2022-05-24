@@ -29,7 +29,7 @@ class _ClothesState extends State<Clothes> {
     });
   }
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
-      String prd_description,String prd_quantity,String prd_date,String catid,String storeid,String storename) async{
+      String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid,String storename) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("pid",prd_id);
     preferences.setString("pname",prd_name);
@@ -37,7 +37,10 @@ class _ClothesState extends State<Clothes> {
     preferences.setString("pimage",prd_image);
     preferences.setString("pdescription",prd_description);
     preferences.setString("pquantity",prd_quantity);
-    preferences.setString("catid",catid);
+    preferences.setString("pcolor",prd_color);
+    preferences.setString("psize",prd_size);
+    preferences.setString("pdate",prd_date);
+    preferences.setString("pcatid",catid);
     preferences.setString("pstoreid",storeid);
     preferences.setString("pstorename",storename);
   }
@@ -125,6 +128,8 @@ class _ClothesState extends State<Clothes> {
                                   _item[index].prd_image,
                                   _item[index].prd_description,
                                   _item[index].prd_quantity,
+                                  _item[index].prd_color,
+                                  _item[index].prd_size,
                                   _item[index].prd_date,
                                   _item[index].cat_id,
                                   _item[index].store_id,

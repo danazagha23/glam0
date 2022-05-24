@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:http/http.dart' as http;
+import '../config.dart';
+import '../models/banner.dart';
 
 class HomeSlider extends StatefulWidget {
   @override
@@ -8,7 +12,51 @@ class HomeSlider extends StatefulWidget {
 }
 
 class _HomeSliderState extends State<HomeSlider> {
+  String s1 ='' , s2='' , s3='';
+  Future<String> getBanner(String place) async {
 
+    print('inside the getBanner function with placement '+place );
+    var map = Map <String, dynamic>();
+    map['action'] = "GET_BANNER";
+    map['place'] = place;
+    var response = await http.post(Uri.parse(CONFIG.BANNER), body:map);
+    String imageCode = '';
+    if(response.statusCode == 200) {
+      print(response.body);
+      print('inside the getBanner function with placement '+place );
+
+      Map<String, dynamic> userMap = jsonDecode(response.body);
+      MyBanner banner = MyBanner.fromJson(userMap);
+      imageCode = banner.imageCode;
+      print("image Code is ");
+      print(imageCode);
+
+
+    }
+
+    return imageCode;
+  }
+  @override
+
+  initState(){
+
+
+    getBanner('3').then((slider1) {
+      s1 = slider1;
+    });
+
+    getBanner('4').then((slider2) {
+      s2 = slider2;
+    });
+
+    getBanner('5').then((slider2) {
+      s3 = slider2;
+    });
+
+
+
+
+  }
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -27,29 +75,29 @@ class _HomeSliderState extends State<HomeSlider> {
               items: [
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage('assets/images/z1.jpg'),
+                  child: Container(
+                      child: Image.memory(   //////////////////////////////
+                        base64Decode(s1),
                         fit: BoxFit.cover,
-                    ),
+                      )
                   ),
                 ),
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/z3.jpg'),
-                      fit: BoxFit.cover,
-                    ),
+                  child: Container(
+                      child: Image.memory(   //////////////////////////////
+                        base64Decode(s2),
+                        fit: BoxFit.cover,
+                      )
                   ),
                 ),
                 Container(
                   width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/z2.jpg'),
-                      fit: BoxFit.cover,
-                    ),
+                  child: Container(
+                      child: Image.memory(   //////////////////////////////
+                        base64Decode(s3),
+                        fit: BoxFit.cover,
+                      )
                   ),
                 ),
               ]

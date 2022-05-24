@@ -15,7 +15,7 @@ import '../models/store.dart';
 import 'drawer.dart';
 import 'slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../models/banner.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -27,6 +27,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  String b1 ='' , b2='' ;
   saveItem(String prd_id,String prd_name ,String prd_price,String prd_image,
       String prd_description,String prd_quantity,String prd_color,String prd_size,String prd_date,String catid,String storeid,String storename) async{
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -127,6 +128,29 @@ sendNotify(String title, String body) async{
       ),
     );
 }
+  Future<String> getBanner(String place) async {
+
+    print('inside the getBanner function with placement '+place );
+    var map = Map <String, dynamic>();
+    map['action'] = "GET_BANNER";
+    map['place'] = place;
+    var response = await http.post(Uri.parse(CONFIG.BANNER), body:map);
+    String imageCode = '';
+    if(response.statusCode == 200) {
+      print(response.body);
+      print('inside the getBanner function with placement '+place );
+
+      Map<String, dynamic> userMap = jsonDecode(response.body);
+      MyBanner banner = MyBanner.fromJson(userMap);
+      imageCode = banner.imageCode;
+      print("image Code is ");
+      print(imageCode);
+
+
+    }
+
+    return imageCode;
+  }
 
   @override
   void initState() {
@@ -149,12 +173,15 @@ sendNotify(String title, String body) async{
         _store.addAll(value);
       });
     });
-    FirebaseMessaging.onMessage.listen((message) {
-      print('done');
+
+    getBanner('1').then((topBanner) {
+      b1 = topBanner;
     });
 
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    getBanner('2').then((bottomBanner) {
+      b2 = bottomBanner;
+    });
+    FirebaseMessaging.onMessage.listen((message) {
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
       if (notification != null && android != null) {
@@ -174,7 +201,7 @@ sendNotify(String title, String body) async{
       }
     });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
       print('A new onMessageOpenedApp event was published!');
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
@@ -195,22 +222,7 @@ sendNotify(String title, String body) async{
       }
     });
   }
-  int _counter = 0;
-  void showNotification() {
-    setState(() {
-      _counter++;
-    });
-    flutterLocalNotificationsPlugin.show(
-        0,
-        "Delivery",
-        "Your order in the way stay awake!",
-        NotificationDetails(
-            android: AndroidNotificationDetails(channel.id, channel.name,
-                importance: Importance.high,
-                color: Colors.blue,
-                playSound: true,
-                icon: '@mipmap/ic_launcher')));
-  }
+
 
   var fbm = FirebaseMessaging.instance;
   @override
@@ -235,11 +247,6 @@ sendNotify(String title, String body) async{
                     icon: Icon(Icons.shopping_cart),
                     onPressed: () async {
                       await sendNotify("hhh", "bsdjbasjbdjjdbfjsd");
-
-    fbm.getToken().then((token) {
-    print('===================Token============================');
-    print(token.toString());});
-                      // showNotification();
                       //Navigator.pushNamed(context, '/cart');
                     },
                   )
@@ -347,10 +354,12 @@ sendNotify(String title, String body) async{
                       Container(
                         child: Padding(
                           padding:
-                              EdgeInsets.only(top: 6.0, left: 8.0, right: 8.0),
-                          child: Image(
-                            fit: BoxFit.cover,
-                            image: AssetImage('assets/images/banner-1.png'),
+                          EdgeInsets.only(top: 6.0, left: 8.0, right: 8.0),
+                          child: Container(
+                              child: Image.memory(   //////////////////////////////
+                                base64Decode(b1),
+                                fit: BoxFit.cover,
+                              )
                           ),
                         ),
                       ),
@@ -439,9 +448,11 @@ sendNotify(String title, String body) async{
                         child: Padding(
                           padding: EdgeInsets.only(
                               top: 6.0, left: 8.0, right: 8.0, bottom: 10),
-                          child: Image(
-                            fit: BoxFit.cover,
-                            image: AssetImage('assets/images/banner-2.png'),
+                          child: Container(
+                              child: Image.memory(   //////////////////////////////
+                                base64Decode(b2),
+                                fit: BoxFit.cover,
+                              )
                           ),
                         ),
                       ),
