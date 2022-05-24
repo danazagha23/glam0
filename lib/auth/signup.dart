@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:glam0/models/user.dart';
 import 'package:glam0/blocks/auth_block.dart';
@@ -12,10 +13,17 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   final _formKey = GlobalKey<FormState>();
-  final User user = User(id: '',password: '', name: '', email: '', address: '', phone: '');
+  final User user = User(id: '',password: '', name: '', email: '', address: '', phone: '',token: '');
+  var fbm = FirebaseMessaging.instance;
+
   late String confirmPassword;
   @override
   Widget build(BuildContext context) {
+    fbm.getToken().then((token) {
+      print('===================Token============================');
+      print(token.toString());
+      user.token = token.toString()!;
+    });
     return Center(
         child: Form(
           key: _formKey,
@@ -41,6 +49,7 @@ class _SignUpState extends State<SignUp> {
                       onSaved: (value) {
                         setState(() {
                           user.name = value!;
+
                         });
                       },
                       decoration: InputDecoration(
@@ -183,6 +192,7 @@ class _SignUpState extends State<SignUp> {
                               _formKey.currentState!.save();
                               // If the form is valid, display a snackbar. In the real world,
                               // you'd often call a server or save the information in a database.
+
                               auth.register(user);
                               Navigator.pushNamed(context, '/settings');
                             }

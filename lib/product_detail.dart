@@ -364,7 +364,7 @@ class _ProductState extends State<Product> {
                                 ),
                               ),
                               onPressed: () {
-                                if(isSignin && selectedSize>0 && selectedColor>0) {
+                                if(isSignin && selectedSize>-1 && selectedColor>-1) {
                                   cartTapped();
                                   Fluttertoast.showToast(
                                       msg: 'Added to cart',

@@ -1,6 +1,6 @@
 class CONFIG {
   //192.168.1.181   127.0.0.1   192.168.1.104
-  static const String s = "http://192.168.0.108/glam/";
+  static const String s = "http://192.168.1.104/glam/";
 
   static const String REGISTER =   s + "register_client.php";
   static const String LOGIN =   s + "login_client.php";

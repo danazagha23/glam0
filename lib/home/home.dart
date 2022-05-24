@@ -104,7 +104,29 @@ class _HomeState extends State<Home> {
 
     return items;
   }
-
+var serverToken = 'AAAAwlVlVSg:APA91bGCAru8bqIuJkYay2VtJeDa3aOUje6X_RFbsT491rThvwXhbU1XNbRrpSuoaSS6i29jdGUjQcmxSfmNPjdwN5k376Wu1U7yMNfWZB4883um6BuguHYn-xrXOfBdjty0t5P_DfCO';
+sendNotify(String title, String body) async{
+    await http.post(
+      Uri.parse('https://fcm.googleapis.com/fcm/send'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'key=$serverToken',
+        },
+        body: jsonEncode(
+    <String, dynamic>{
+        'notification': <String, dynamic>{
+          'body': body.toString(),
+          'title': title.toString()
+        },
+      'priority': 'high',
+      'data': <String, dynamic>{
+          'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+      },
+      'to': await FirebaseMessaging.instance.getToken()
+        },
+      ),
+    );
+}
 
   @override
   void initState() {
@@ -127,6 +149,10 @@ class _HomeState extends State<Home> {
         _store.addAll(value);
       });
     });
+    FirebaseMessaging.onMessage.listen((message) {
+      print('done');
+    });
+
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
@@ -184,14 +210,9 @@ class _HomeState extends State<Home> {
                 color: Colors.blue,
                 playSound: true,
                 icon: '@mipmap/ic_launcher')));
-
-
   }
-  // @override
-  // initState(){
-  //
-  // }
 
+  var fbm = FirebaseMessaging.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -212,9 +233,13 @@ class _HomeState extends State<Home> {
                 actions: <Widget>[
                   IconButton(
                     icon: Icon(Icons.shopping_cart),
-                    onPressed: () {
+                    onPressed: () async {
+                      await sendNotify("hhh", "bsdjbasjbdjjdbfjsd");
 
-                      showNotification();
+    fbm.getToken().then((token) {
+    print('===================Token============================');
+    print(token.toString());});
+                      // showNotification();
                       //Navigator.pushNamed(context, '/cart');
                     },
                   )

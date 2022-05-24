@@ -80,11 +80,35 @@ class _CheckoutState extends State<Checkout> {
         // i = i + int.parse(cart.fromJson(dataJson).prd_price)*int.parse(cart.fromJson(dataJson).quantity);
         quantity = int.parse(cart.fromJson(dataJson).quantity);
       }
-
     }
 
     return items;
   }
+  Future fetchOrders2() async {
+
+    var response = await http.post(Uri.parse(CONFIG.CARTPRO),
+        body: {
+          'cust_id': cust_id
+        });
+
+    if(response.statusCode == 200) {
+      var itemsJson = json.decode(response.body);
+      for(var dataJson in itemsJson){
+        final response = await http.post(Uri.parse(CONFIG.ORDERDET),
+            body: {
+              'cust_id': cust_id,
+              'prd_id': cart.fromJson(dataJson).product_id,
+              'quantity': cart.fromJson(dataJson).quantity,
+              'color': cart.fromJson(dataJson).color,
+              'size': cart.fromJson(dataJson).size,
+            }
+        );
+      }
+    }
+
+  }
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -394,6 +418,7 @@ class _CheckoutState extends State<Checkout> {
                 child: RaisedButton(
                   onPressed: () {
                     fetchOrders();
+                    fetchOrders2();
                     deleteItems();
                     Fluttertoast.showToast(
                         msg: 'Order Placed!',
@@ -401,7 +426,7 @@ class _CheckoutState extends State<Checkout> {
                         gravity: ToastGravity.CENTER,
                         timeInSecForIosWeb: 1,
                         fontSize: 16.0);
-                    // fetchOrders2();
+
                     Navigator.pushNamed(context, '/cart');},
                   child: Text(
                     "Place your order",
@@ -427,9 +452,9 @@ class _CheckoutState extends State<Checkout> {
     fetchOrders2();
 
   }
-  Future fetchOrders2() async {
-    var response = await http.post(Uri.parse(CONFIG.ORDERDET));
-  }
+  // Future fetchOrders2() async {
+  //   var response = await http.post(Uri.parse(CONFIG.ORDERDET));
+  // }
   void _addQuantity(int index){
     setState(() {
       quantity++;

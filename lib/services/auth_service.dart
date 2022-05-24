@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:glam0/categories.dart';
 import 'package:glam0/config.dart';
 import 'package:glam0/models/user.dart';
@@ -52,13 +53,15 @@ class AuthService {
   }
 
   Future register(User user) async {
+
     final response = await http.post(Uri.parse(CONFIG.REGISTER),
         body: {
           'name': user.name,
           'password': user.password,
           'email': user.email,
           'address': user.address,
-          'phone': user.phone
+          'phone': user.phone,
+          'token': user.token
         });
     if (response.body == "failed") {
       Fluttertoast.showToast(

@@ -52,7 +52,7 @@ class _SettingsState extends State<Settings> {
   }
   @override
   Widget build(BuildContext context) {
-    final User user = User(id: '',password: '', name: '', email: '', address: '', phone: '');
+    final User user = User(id: '',password: '', name: '', email: '', address: '', phone: '', token: '');
     // getPref();
     return Scaffold(
         appBar: AppBar(
